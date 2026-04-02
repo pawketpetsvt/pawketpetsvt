@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PawketPetsVT — Shop</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">🐾 <span>Pawket</span>PetsVT</a>
+      <div class="navbar-links">
+        <a href="index.html">🏠 Home</a>
+        <a href="adopt.html">🐣 Adopt</a>
+        <a href="mypets.html">💖 My Pets</a>
+        <a href="shop.html" class="active">🛍️ Shop</a>
+        <a href="minigames.html">🎮 Minigames</a>
+        <a href="news.html">📰 News</a>
+      </div>
+      <div class="navbar-user">
+        <span id="nav-user"></span>
+        <span id="nav-points" style="display:none"></span>
+        <a href="login.html" id="nav-login" class="btn-nav-login">Login</a>
+        <button onclick="logoutUser()" id="nav-logout" class="btn-nav-logout" style="display:none">Logout</button>
+      </div>
+    </div>
+  </nav>
+  <div class="page-wrap">
+    <div class="page-hero">
+      <div class="sparkle-row">🛍️ ✦ 🛍️</div>
+      <h1>The PawketShop</h1>
+      <p>Spend your PawketPoints on items, toys, and treats for your pets! 🪙</p>
+    </div>
+    <div class="card" style="text-align:center; padding: 60px 40px;">
+      <div style="font-size: 4rem; margin-bottom: 16px;">🚧</div>
+      <h2 style="color: var(--purple-dark); margin-bottom: 12px;">Stocking the shelves!</h2>
+      <p style="color: var(--text-light);">The shop is being filled with goodies. Come back soon! ✨</p>
+    </div>
+  </div>
+  <footer class="footer">
+    <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
+    <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
+  </footer>
+  <script src="js/auth.js"></script>
+  <script>updateNav(); document.getElementById('nav-points').style.display='inline-block';</script>
+</body>
+</html>

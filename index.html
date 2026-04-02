@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PawketPetsVT — Home</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+</head>
+<body>
+
+  <!-- ── News Ticker ── -->
+  <div class="news-ticker">
+    <div class="news-ticker-inner">
+      ✦ Welcome to PawketPetsVT! ✦ &nbsp;&nbsp; Adopt your first pet today! ✧ &nbsp;&nbsp; Watch Embertail &amp; Pyxshuul live on Twitch! ✦ &nbsp;&nbsp; New members coming soon... ✧ &nbsp;&nbsp; Earn PawketPoints by playing minigames! ✦ &nbsp;&nbsp; Stay tuned for updates! ✧ &nbsp;&nbsp;
+    </div>
+  </div>
+
+  <!-- ── Navigation ── -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <div class="navbar-logo">🐾 <span>Pawket</span>PetsVT</div>
+      <div class="navbar-links">
+        <a href="index.html" class="active">🏠 Home</a>
+        <a href="adopt.html">🐣 Adopt</a>
+        <a href="mypets.html">💖 My Pets</a>
+        <a href="shop.html">🛍️ Shop</a>
+        <a href="minigames.html">🎮 Minigames</a>
+        <a href="news.html">📰 News</a>
+      </div>
+      <div class="navbar-user">
+        <span id="nav-user"></span>
+        <span id="nav-points" style="display:none"></span>
+        <a href="login.html" id="nav-login" class="btn-nav-login">Login</a>
+        <button onclick="logoutUser()" id="nav-logout" class="btn-nav-logout" style="display:none">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- ── Welcome Panel ── -->
+    <div class="welcome-panel">
+      <div class="logo-placeholder">🐾</div>
+      <h1>Welcome to PawketPetsVT!</h1>
+      <p>
+        A cozy little corner of the internet where you can adopt virtual pets based on your
+        favourite VTubers, play games, collect items, and earn rewards — both here
+        <em>and</em> on our Twitch streams! ✨
+      </p>
+      <div id="home-cta">
+        <!-- Shown/hidden by JS based on login state -->
+      </div>
+
+      <!-- Social Links -->
+      <div class="social-links" style="margin-top: 20px;">
+        <a href="https://twitch.tv/Embertail" target="_blank" class="social-link">
+          🟣 Embertail on Twitch
+        </a>
+        <a href="https://twitch.tv/Pyxshuul" target="_blank" class="social-link">
+          🟣 Pyxshuul on Twitch
+        </a>
+        <!-- Add more socials here as needed -->
+      </div>
+    </div>
+
+    <!-- ── Quick Links ── -->
+    <div class="section-header">
+      <h2>✦ What do you want to do?</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="quicklinks">
+      <a href="adopt.html" class="quicklink-card">
+        <span class="ql-icon">🐣</span>
+        <span class="ql-label">Adopt a Pet</span>
+      </a>
+      <a href="mypets.html" class="quicklink-card">
+        <span class="ql-icon">💖</span>
+        <span class="ql-label">My Pets</span>
+      </a>
+      <a href="shop.html" class="quicklink-card">
+        <span class="ql-icon">🛍️</span>
+        <span class="ql-label">Shop</span>
+      </a>
+      <a href="minigames.html" class="quicklink-card">
+        <span class="ql-icon">🎮</span>
+        <span class="ql-label">Minigames</span>
+      </a>
+      <a href="news.html" class="quicklink-card">
+        <span class="ql-icon">📰</span>
+        <span class="ql-label">News</span>
+      </a>
+    </div>
+
+    <!-- ── About Blurb ── -->
+    <div class="section-header">
+      <h2>✧ About PawketPetsVT</h2>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="card" style="line-height: 1.8; color: var(--text-light); font-size: 1rem;">
+      <p>
+        <strong style="color: var(--purple-dark);">PawketPetsVT</strong> is a fan-interactive pet game
+        built around the VTuber group of the same name! Inspired by the pet games of the early 2000s
+        (think Neopets vibes ✨), this is a place where the community can collect, raise, and care for
+        little virtual versions of their favourite streamers.
+      </p>
+      <br>
+      <p>
+        Earn <strong style="color: var(--purple-dark);">🪙 PawketPoints</strong> by playing minigames,
+        watching streams, and interacting with your pets. Spend them in the shop to buy
+        items, toys, and snacks for your collection. The more you engage — here and on Twitch —
+        the more your pets will grow! 🌟
+      </p>
+    </div>
+
+  </div>
+
+  <!-- ── Footer ── -->
+  <footer class="footer">
+    <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
+    <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖 &nbsp;|&nbsp;
+      <a href="https://twitch.tv/Embertail" target="_blank">Twitch</a>
+    </p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script>
+    // On page load
+    (async () => {
+      await updateNav();
+
+      const user = await getCurrentUser();
+      const cta = document.getElementById('home-cta');
+
+      if (user) {
+        // Show points in nav
+        document.getElementById('nav-points').style.display = 'inline-block';
+        cta.innerHTML = `
+          <a href="mypets.html" class="btn btn-primary btn-lg" style="margin-right:10px;">💖 My Pets</a>
+          <a href="adopt.html" class="btn btn-secondary btn-lg">🐣 Adopt More</a>
+        `;
+      } else {
+        cta.innerHTML = `
+          <a href="register.html" class="btn btn-primary btn-lg" style="margin-right:10px;">✨ Get Started</a>
+          <a href="login.html" class="btn btn-outline btn-lg">Login</a>
+        `;
+      }
+    })();
+  </script>
+
+</body>
+</html>

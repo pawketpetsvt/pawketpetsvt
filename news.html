@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PawketPetsVT — News</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <style>
+    .news-post {
+      background: var(--white);
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px var(--shadow);
+      transition: transform 0.2s;
+    }
+    .news-post:hover { transform: translateY(-3px); }
+    .news-post-date {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .news-post h3 {
+      font-size: 1.4rem;
+      color: var(--purple-dark);
+      margin-bottom: 10px;
+    }
+    .news-post p {
+      color: var(--text);
+      line-height: 1.7;
+      font-size: 0.97rem;
+    }
+    .news-tag {
+      display: inline-block;
+      background: var(--purple-light);
+      color: var(--purple-dark);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+      font-family: 'Fredoka One', cursive;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-logo">🐾 <span>Pawket</span>PetsVT</a>
+      <div class="navbar-links">
+        <a href="index.html">🏠 Home</a>
+        <a href="adopt.html">🐣 Adopt</a>
+        <a href="mypets.html">💖 My Pets</a>
+        <a href="shop.html">🛍️ Shop</a>
+        <a href="minigames.html">🎮 Minigames</a>
+        <a href="news.html" class="active">📰 News</a>
+      </div>
+      <div class="navbar-user">
+        <span id="nav-user"></span>
+        <span id="nav-points" style="display:none"></span>
+        <a href="login.html" id="nav-login" class="btn-nav-login">Login</a>
+        <button onclick="logoutUser()" id="nav-logout" class="btn-nav-logout" style="display:none">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="page-hero">
+      <div class="sparkle-row">📰 ✦ 📰</div>
+      <h1>News & Announcements</h1>
+      <p>Stay up to date with everything happening in PawketPetsVT! ✨</p>
+    </div>
+
+    <div id="news-container">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
+    <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script>
+    updateNav();
+
+    async function loadNews() {
+      const container = document.getElementById('news-container');
+
+      const { data: posts, error } = await supabaseClient
+        .from('news')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !posts || posts.length === 0) {
+        container.innerHTML = `
+          <div class="card" style="text-align:center; padding: 60px 40px;">
+            <div style="font-size: 3rem; margin-bottom: 16px;">📭</div>
+            <h2 style="color: var(--purple-dark); margin-bottom: 12px;">No news yet!</h2>
+            <p style="color: var(--text-light);">Check back soon for updates, announcements, and more! ✨</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = posts.map(post => {
+        const date = new Date(post.created_at).toLocaleDateString('en-US', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+        return `
+          <div class="news-post">
+            ${post.tag ? `<div class="news-tag">✦ ${post.tag}</div>` : ''}
+            <div class="news-post-date">📅 ${date}</div>
+            <h3>${post.title || 'Untitled Post'}</h3>
+            <p>${post.content || ''}</p>
+          </div>
+        `;
+      }).join('');
+    }
+
+    loadNews();
+  </script>
+</body>
+</html>
