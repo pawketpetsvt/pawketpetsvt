@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PawketPetsVT — Register</title>
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
 </head>
 <body>
 
@@ -76,6 +74,9 @@
     <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
   </footer>
 
+  <!-- ── Scripts load at bottom in correct order ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script>
     redirectIfLoggedIn();
@@ -92,7 +93,6 @@
       errorEl.classList.remove('show');
       successEl.classList.remove('show');
 
-      // Validation
       if (!username || !email || !password || !confirm) {
         errorEl.textContent = 'Please fill in all fields!';
         errorEl.classList.add('show');
