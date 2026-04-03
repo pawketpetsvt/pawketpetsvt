@@ -37,7 +37,7 @@
     .btn-action:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-feed { background: linear-gradient(135deg, #ff9f43, #ffcc70); color: var(--white); }
     .btn-play { background: linear-gradient(135deg, var(--pink), var(--purple)); color: var(--white); }
-    .stat-flash { font-size: 0.82rem; font-weight: 700; text-align: center; color: var(--green); min-height: 18px; transition: opacity 0.3s; }
+    .stat-flash { font-size: 0.82rem; font-weight: 700; text-align: center; min-height: 18px; transition: opacity 0.4s; }
     .sadness-warning { background: #fff0f0; border: 2px solid #ffb3b3; border-radius: var(--radius); padding: 6px 12px; font-size: 0.82rem; color: #cc4444; font-weight: 700; text-align: center; }
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(60,20,100,0.5); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; }
     .modal-overlay.show { display: flex; }
@@ -113,10 +113,13 @@
     let currentUser = null;
     let currentPoints = 0;
 
+    // Store live pet state here — keyed by pet row id
+    // This avoids stale onclick parameters
+    const petState = {};
+
     async function init() {
       const session = await requireLogin();
       if (!session) return;
-
       await updateNav();
       document.getElementById('nav-points').style.display = 'inline-block';
       currentUser = session.user;
@@ -128,10 +131,7 @@
         currentPoints = bonus.newTotal;
       } else {
         const { data: playerData } = await supabaseClient
-          .from('players')
-          .select('pawketpoints')
-          .eq('id', currentUser.id)
-          .single();
+          .from('players').select('pawketpoints').eq('id', currentUser.id).single();
         if (playerData) currentPoints = playerData.pawketpoints;
       }
 
@@ -155,12 +155,11 @@
 
       const { data: userPets, error } = await supabaseClient
         .from('user_pets')
-        .select('*, pets(name, image_file, vtuber_name, description)')
+        .select('*, pets(name, image_file, vtuber_name)')
         .eq('user_id', currentUser.id)
         .order('adopted_at', { ascending: true });
 
       if (error) {
-        console.error('Error loading pets:', error.message);
         container.innerHTML = '<p style="text-align:center;color:var(--text-light);">Could not load pets. Please refresh.</p>';
         return;
       }
@@ -168,22 +167,28 @@
       if (!userPets || userPets.length === 0) {
         container.innerHTML = `
           <div class="empty-state">
-            <div style="font-size:3.5rem; margin-bottom:16px;">🐾</div>
-            <h2 style="color:var(--purple-dark); margin-bottom:10px;">No pets yet!</h2>
-            <p style="color:var(--text-light); margin-bottom:20px;">Head to the adoption centre to find your first companion!</p>
+            <div style="font-size:3.5rem;margin-bottom:16px;">🐾</div>
+            <h2 style="color:var(--purple-dark);margin-bottom:10px;">No pets yet!</h2>
+            <p style="color:var(--text-light);margin-bottom:20px;">Head to the adoption centre to find your first companion!</p>
             <a href="adopt.html" class="btn btn-primary btn-lg">🐣 Adopt a Pet</a>
           </div>`;
         return;
       }
 
-      // Apply energy regen and happiness decay before rendering
-      const petsWithCalcs = userPets.map(pet => {
+      // Apply regen/decay and store in petState
+      userPets.forEach(pet => {
         const newEnergy = calculateEnergyRegen(pet.energy, pet.max_energy, pet.last_played);
         const newHappiness = calculateHappinessDecay(pet.happiness, pet.last_fed, pet.last_played);
-        return { ...pet, energy: newEnergy, happiness: newHappiness };
+        petState[pet.id] = {
+          ...pet,
+          energy: newEnergy,
+          happiness: newHappiness
+        };
       });
 
-      container.innerHTML = '<div class="pets-grid">' + petsWithCalcs.map(pet => renderMyPetCard(pet)).join('') + '</div>';
+      container.innerHTML = '<div class="pets-grid">' +
+        Object.values(petState).map(pet => renderMyPetCard(pet)).join('') +
+        '</div>';
     }
 
     function renderMyPetCard(pet) {
@@ -211,9 +216,7 @@
               <div class="pet-card-level">Lv. ${pet.level}</div>
             </div>
           </div>
-
           ${isSad ? '<div class="sadness-warning">😢 Your pet is feeling neglected! Play or feed them!</div>' : ''}
-
           <div class="stat-bars">
             <div class="stat-row">
               <span class="stat-label">🍖 Hunger</span>
@@ -236,46 +239,39 @@
               <span class="xp-value" id="xp-val-${pet.id}">${pet.xp}/${xpForNextLevel}</span>
             </div>
           </div>
-
           <div class="pet-actions">
-            <button class="btn-action btn-feed"
-              id="feed-btn-${pet.id}"
-              onclick="feedPet('${pet.id}', ${pet.hunger}, ${pet.max_hunger}, ${pet.happiness}, ${pet.max_happiness}, ${pet.xp}, ${pet.level})"
-              ${!canFeed ? 'disabled' : ''}>
+            <button class="btn-action btn-feed" id="feed-btn-${pet.id}" onclick="feedPet('${pet.id}')" ${!canFeed ? 'disabled' : ''}>
               ${canFeed ? '🍖 Feed' : '🍖 Full!'}
             </button>
-            <button class="btn-action btn-play"
-              id="play-btn-${pet.id}"
-              onclick="playWithPet('${pet.id}', ${pet.energy}, ${pet.max_energy}, ${pet.happiness}, ${pet.max_happiness}, ${pet.xp}, ${pet.level})"
-              ${!canPlay ? 'disabled' : ''}>
+            <button class="btn-action btn-play" id="play-btn-${pet.id}" onclick="playWithPet('${pet.id}')" ${!canPlay ? 'disabled' : ''}>
               ${canPlay ? '🎾 Play' : '⚡ Tired!'}
             </button>
           </div>
-
           <div class="stat-flash" id="flash-${pet.id}"></div>
-        </div>
-      `;
+        </div>`;
     }
 
-    async function feedPet(petId, hunger, maxHunger, happiness, maxHappiness, xp, level) {
+    async function feedPet(petId) {
+      const pet = petState[petId];
+      if (!pet || pet.hunger >= pet.max_hunger) return;
+
       const btn = document.getElementById('feed-btn-' + petId);
       btn.disabled = true;
       btn.textContent = '...';
 
-      const newHunger = Math.min(hunger + 20, maxHunger);
-      const newHappiness = Math.min(happiness + 5, maxHappiness);
-      const xpGain = 10;
-      const newXp = xp + xpGain;
-      const xpForNext = level * 100;
-      let newLevel = level;
+      const newHunger = Math.min(pet.hunger + 20, pet.max_hunger);
+      const newHappiness = Math.min(pet.happiness + 5, pet.max_happiness);
+      const newXp = pet.xp + 10;
+      const xpForNext = pet.level * 100;
+      let newLevel = pet.level;
       let finalXp = newXp;
 
       if (newXp >= xpForNext) {
-        newLevel = level + 1;
+        newLevel = pet.level + 1;
         finalXp = newXp - xpForNext;
         showFlash(petId, '🎉 Level up! Now Lv.' + newLevel + '!', '#b06aff');
       } else {
-        showFlash(petId, '+20 Hunger  +5 Happiness  +' + xpGain + ' XP', '#5dde7a');
+        showFlash(petId, '+20 Hunger  +5 Happiness  +10 XP', '#5dde7a');
       }
 
       const { error } = await supabaseClient
@@ -290,32 +286,45 @@
         return;
       }
 
-      updateStatBar(petId, 'hunger', newHunger, maxHunger);
-      updateStatBar(petId, 'happiness', newHappiness, maxHappiness);
+      // Update state object with new values
+      petState[petId].hunger = newHunger;
+      petState[petId].happiness = newHappiness;
+      petState[petId].xp = finalXp;
+      petState[petId].level = newLevel;
+
+      updateStatBar(petId, 'hunger', newHunger, pet.max_hunger);
+      updateStatBar(petId, 'happiness', newHappiness, pet.max_happiness);
       updateXpBar(petId, finalXp, newLevel);
-      if (newHunger >= maxHunger) { btn.textContent = '🍖 Full!'; } else { btn.disabled = false; btn.textContent = '🍖 Feed'; }
+
+      if (newHunger >= pet.max_hunger) {
+        btn.textContent = '🍖 Full!';
+      } else {
+        btn.disabled = false;
+        btn.textContent = '🍖 Feed';
+      }
     }
 
-    async function playWithPet(petId, energy, maxEnergy, happiness, maxHappiness, xp, level) {
-      if (energy < 10) return;
+    async function playWithPet(petId) {
+      const pet = petState[petId];
+      if (!pet || pet.energy < 10) return;
+
       const btn = document.getElementById('play-btn-' + petId);
       btn.disabled = true;
       btn.textContent = '...';
 
-      const newEnergy = Math.max(energy - 10, 0);
-      const newHappiness = Math.min(happiness + 15, maxHappiness);
-      const xpGain = 15;
-      const newXp = xp + xpGain;
-      const xpForNext = level * 100;
-      let newLevel = level;
+      const newEnergy = Math.max(pet.energy - 10, 0);
+      const newHappiness = Math.min(pet.happiness + 15, pet.max_happiness);
+      const newXp = pet.xp + 15;
+      const xpForNext = pet.level * 100;
+      let newLevel = pet.level;
       let finalXp = newXp;
 
       if (newXp >= xpForNext) {
-        newLevel = level + 1;
+        newLevel = pet.level + 1;
         finalXp = newXp - xpForNext;
         showFlash(petId, '🎉 Level up! Now Lv.' + newLevel + '!', '#b06aff');
       } else {
-        showFlash(petId, '-10 Energy  +15 Happiness  +' + xpGain + ' XP', '#5dde7a');
+        showFlash(petId, '-10 Energy  +15 Happiness  +15 XP', '#5dde7a');
       }
 
       const { error } = await supabaseClient
@@ -330,10 +339,22 @@
         return;
       }
 
-      updateStatBar(petId, 'energy', newEnergy, maxEnergy);
-      updateStatBar(petId, 'happiness', newHappiness, maxHappiness);
+      // Update state object
+      petState[petId].energy = newEnergy;
+      petState[petId].happiness = newHappiness;
+      petState[petId].xp = finalXp;
+      petState[petId].level = newLevel;
+
+      updateStatBar(petId, 'energy', newEnergy, pet.max_energy);
+      updateStatBar(petId, 'happiness', newHappiness, pet.max_happiness);
       updateXpBar(petId, finalXp, newLevel);
-      if (newEnergy < 10) { btn.textContent = '⚡ Tired!'; } else { btn.disabled = false; btn.textContent = '🎾 Play'; }
+
+      if (newEnergy < 10) {
+        btn.textContent = '⚡ Tired!';
+      } else {
+        btn.disabled = false;
+        btn.textContent = '🎾 Play';
+      }
     }
 
     function updateStatBar(petId, stat, value, max) {
@@ -360,6 +381,16 @@
       el.style.color = color || 'var(--green)';
       el.style.opacity = '1';
       setTimeout(() => { el.style.opacity = '0'; }, 2500);
+    }
+
+    // Called from shop when an item is used on a pet — refreshes stats live
+    function applyItemToPet(petId, hungerGain, energyGain, happinessGain, xpGain) {
+      const pet = petState[petId];
+      if (!pet) return;
+      if (hungerGain) { pet.hunger = Math.min(pet.hunger + hungerGain, pet.max_hunger); updateStatBar(petId, 'hunger', pet.hunger, pet.max_hunger); }
+      if (energyGain) { pet.energy = Math.min(pet.energy + energyGain, pet.max_energy); updateStatBar(petId, 'energy', pet.energy, pet.max_energy); }
+      if (happinessGain) { pet.happiness = Math.min(pet.happiness + happinessGain, pet.max_happiness); updateStatBar(petId, 'happiness', pet.happiness, pet.max_happiness); }
+      if (xpGain) { pet.xp = pet.xp + xpGain; updateXpBar(petId, pet.xp, pet.level); }
     }
 
     init();

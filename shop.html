@@ -14,7 +14,8 @@
     .shop-item-icon img { width: 100%; height: 100%; object-fit: cover; }
     .shop-item-name { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--purple-dark); }
     .shop-item-desc { font-size: 0.85rem; color: var(--text-light); line-height: 1.5; flex: 1; }
-    .shop-item-effect { font-size: 0.8rem; font-weight: 700; color: var(--purple); background: var(--purple-light); padding: 3px 10px; border-radius: 20px; }
+    .shop-effects { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+    .effect-tag { font-size: 0.78rem; font-weight: 700; color: var(--purple); background: var(--purple-light); padding: 2px 8px; border-radius: 20px; }
     .shop-item-price { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--purple); }
     .btn-buy { width: 100%; font-family: 'Fredoka One', cursive; font-size: 0.95rem; padding: 9px; border-radius: 24px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--purple), var(--pink)); color: var(--white); transition: transform 0.15s, opacity 0.2s; }
     .btn-buy:hover:not(:disabled) { transform: translateY(-2px); }
@@ -24,12 +25,13 @@
     .points-banner .pb-amount { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: var(--purple); background: var(--white); padding: 4px 16px; border-radius: 20px; box-shadow: 0 2px 8px var(--shadow); }
     .shop-tabs { display: flex; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
     .shop-tab { font-family: 'Fredoka One', cursive; font-size: 0.95rem; padding: 8px 20px; border-radius: 24px; border: 2.5px solid var(--border); background: var(--white); color: var(--text-light); cursor: pointer; transition: all 0.2s; }
-    .shop-tab.active, .shop-tab:hover { background: linear-gradient(135deg, var(--purple), var(--pink)); color: var(--white); border-color: transparent; }
+    .shop-tab.active { background: linear-gradient(135deg, var(--purple), var(--pink)); color: var(--white); border-color: transparent; }
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--purple-dark); color: var(--white); font-family: 'Fredoka One', cursive; font-size: 1rem; padding: 12px 28px; border-radius: 30px; box-shadow: 0 8px 24px var(--shadow); z-index: 300; transition: transform 0.3s ease; pointer-events: none; }
     .toast.show { transform: translateX(-50%) translateY(0); }
     .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
     .inv-card { background: var(--white); border: 2.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; text-align: center; box-shadow: 0 4px 12px var(--shadow); display: flex; flex-direction: column; gap: 8px; align-items: center; }
-    .inv-icon { width: 60px; height: 60px; border-radius: var(--radius); background: var(--purple-light); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+    .inv-icon { width: 60px; height: 60px; border-radius: var(--radius); background: var(--purple-light); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; }
+    .inv-icon img { width: 100%; height: 100%; object-fit: cover; }
     .inv-name { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--purple-dark); }
     .inv-qty { font-size: 0.8rem; font-weight: 700; color: var(--text-light); }
     .btn-use { width: 100%; font-family: 'Fredoka One', cursive; font-size: 0.85rem; padding: 7px; border-radius: 20px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--green), #3ab85a); color: var(--white); transition: transform 0.15s; }
@@ -80,24 +82,19 @@
     </div>
 
     <div class="shop-tabs">
-      <button class="shop-tab active" onclick="showTab('shop')">🛍️ Shop</button>
-      <button class="shop-tab" onclick="showTab('inventory')">🎒 My Inventory</button>
+      <button class="shop-tab active" id="tab-btn-shop" onclick="showTab('shop')">🛍️ Shop</button>
+      <button class="shop-tab" id="tab-btn-inventory" onclick="showTab('inventory')">🎒 My Inventory</button>
     </div>
 
     <div id="tab-shop">
-      <div id="shop-grid" class="shop-grid">
-        <div class="spinner"></div>
-      </div>
+      <div id="shop-grid" class="shop-grid"><div class="spinner"></div></div>
     </div>
-
     <div id="tab-inventory" style="display:none">
-      <div id="inventory-grid" class="inventory-grid">
-        <div class="spinner"></div>
-      </div>
+      <div id="inventory-grid" class="inventory-grid"><div class="spinner"></div></div>
     </div>
   </div>
 
-  <!-- Use item modal — pick which pet -->
+  <!-- Use item modal -->
   <div class="use-modal-overlay" id="use-modal">
     <div class="use-modal">
       <h2 id="use-modal-title">Use item</h2>
@@ -107,7 +104,6 @@
     </div>
   </div>
 
-  <!-- Toast notification -->
   <div class="toast" id="toast"></div>
 
   <footer class="footer">
@@ -132,20 +128,11 @@
       currentUser = session.user;
 
       const { data: playerData } = await supabaseClient
-        .from('players')
-        .select('pawketpoints')
-        .eq('id', currentUser.id)
-        .single();
-      if (playerData) {
-        currentPoints = playerData.pawketpoints;
-        updatePointsDisplay();
-      }
+        .from('players').select('pawketpoints').eq('id', currentUser.id).single();
+      if (playerData) { currentPoints = playerData.pawketpoints; updatePointsDisplay(); }
 
-      // Load user's pets for the "use item" modal
       const { data: petsData } = await supabaseClient
-        .from('user_pets')
-        .select('id, nickname, pets(name)')
-        .eq('user_id', currentUser.id);
+        .from('user_pets').select('id, nickname').eq('user_id', currentUser.id);
       if (petsData) myPets = petsData;
 
       await loadShop();
@@ -162,44 +149,39 @@
     function showTab(tab) {
       document.getElementById('tab-shop').style.display = tab === 'shop' ? 'block' : 'none';
       document.getElementById('tab-inventory').style.display = tab === 'inventory' ? 'block' : 'none';
-      document.querySelectorAll('.shop-tab').forEach((btn, i) => {
-        btn.classList.toggle('active', (i === 0 && tab === 'shop') || (i === 1 && tab === 'inventory'));
-      });
+      document.getElementById('tab-btn-shop').classList.toggle('active', tab === 'shop');
+      document.getElementById('tab-btn-inventory').classList.toggle('active', tab === 'inventory');
     }
 
-    function getEffectLabel(effect, value) {
-      const labels = {
-        'hunger': '+' + value + ' Hunger',
-        'energy': '+' + value + ' Energy',
-        'happiness': '+' + value + ' Happiness',
-        'hunger_happiness': '+' + value + ' Hunger & Happiness',
-      };
-      return labels[effect] || effect;
+    function getItemEmoji(itemType) {
+      const map = { 'food': '🍖', 'toy': '🎾', 'potion': '✨', 'special': '🌟' };
+      return map[itemType] || '🎁';
     }
 
-    function getItemEmoji(effect) {
-      const emojis = { 'hunger': '🍖', 'energy': '⚡', 'happiness': '💖', 'hunger_happiness': '🍱' };
-      return emojis[effect] || '🎁';
+    function buildEffectTags(item) {
+      const tags = [];
+      if (item.hunger_effect && item.hunger_effect > 0) tags.push('<span class="effect-tag">🍖 +' + item.hunger_effect + ' Hunger</span>');
+      if (item.energy_effect && item.energy_effect > 0) tags.push('<span class="effect-tag">⚡ +' + item.energy_effect + ' Energy</span>');
+      if (item.happiness_effect && item.happiness_effect > 0) tags.push('<span class="effect-tag">💖 +' + item.happiness_effect + ' Happiness</span>');
+      if (item.xp_effect && item.xp_effect > 0) tags.push('<span class="effect-tag">✨ +' + item.xp_effect + ' XP</span>');
+      return tags.length > 0 ? '<div class="shop-effects">' + tags.join('') + '</div>' : '';
     }
 
     async function loadShop() {
       const grid = document.getElementById('shop-grid');
       const { data: items, error } = await supabaseClient
-        .from('items')
-        .select('*')
-        .order('price', { ascending: true });
+        .from('items').select('*').order('price', { ascending: true });
 
       if (error || !items || items.length === 0) {
-        grid.innerHTML = '<div class="card" style="text-align:center;padding:40px;grid-column:1/-1"><p style="color:var(--text-light)">No items in stock yet! Check back soon. ✨</p></div>';
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light)">No items in stock yet! Check back soon. ✨</div>';
         return;
       }
 
       grid.innerHTML = items.map(item => {
-        const emoji = getItemEmoji(item.effect);
-        const effectLabel = item.effect ? getEffectLabel(item.effect, item.effect_value) : '';
+        const emoji = getItemEmoji(item.item_type);
         const canAfford = currentPoints >= item.price;
-        const imageHtml = item.image_file
-          ? '<img src="images/' + item.image_file + '" alt="' + item.name + '" onerror="this.parentElement.innerHTML=\'' + emoji + '\'">'
+        const imageHtml = item.image_url
+          ? '<img src="' + item.image_url + '" alt="' + item.name + '" onerror="this.parentElement.innerHTML=\'' + emoji + '\'">'
           : emoji;
 
         return `
@@ -207,47 +189,35 @@
             <div class="shop-item-icon">${imageHtml}</div>
             <div class="shop-item-name">${item.name}</div>
             <div class="shop-item-desc">${item.description || ''}</div>
-            ${effectLabel ? '<div class="shop-item-effect">' + effectLabel + '</div>' : ''}
+            ${buildEffectTags(item)}
             <div class="shop-item-price">🪙 ${item.price} PP</div>
             <button class="btn-buy"
-              onclick="buyItem('${item.id}', '${item.name.replace(/'/g,"\\'")}', ${item.price})"
+              onclick="buyItem('${item.id}', '${item.name.replace(/'/g, "\\'")}'  , ${item.price})"
               ${!canAfford ? 'disabled' : ''}>
               ${canAfford ? '🛍️ Buy' : 'Need ' + item.price + ' PP'}
             </button>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
     async function buyItem(itemId, itemName, price) {
       if (currentPoints < price) return;
-
       const newPoints = currentPoints - price;
 
-      // Deduct points
       const { error: pointsError } = await supabaseClient
-        .from('players')
-        .update({ pawketpoints: newPoints })
-        .eq('id', currentUser.id);
-
+        .from('players').update({ pawketpoints: newPoints }).eq('id', currentUser.id);
       if (pointsError) { showToast('Something went wrong! Try again.'); return; }
 
-      // Add to inventory — check if they already have this item
+      // Check if already in inventory
       const { data: existing } = await supabaseClient
-        .from('user_inventory')
-        .select('id, quantity')
-        .eq('user_id', currentUser.id)
-        .eq('item_id', itemId)
-        .single();
+        .from('user_inventory').select('id, quantity')
+        .eq('user_id', currentUser.id).eq('item_id', itemId).maybeSingle();
 
       if (existing) {
-        await supabaseClient
-          .from('user_inventory')
-          .update({ quantity: existing.quantity + 1 })
-          .eq('id', existing.id);
+        await supabaseClient.from('user_inventory')
+          .update({ quantity: existing.quantity + 1 }).eq('id', existing.id);
       } else {
-        await supabaseClient
-          .from('user_inventory')
+        await supabaseClient.from('user_inventory')
           .insert([{ user_id: currentUser.id, item_id: itemId, quantity: 1 }]);
       }
 
@@ -262,7 +232,7 @@
       const grid = document.getElementById('inventory-grid');
       const { data: inv, error } = await supabaseClient
         .from('user_inventory')
-        .select('*, items(name, description, effect, effect_value, image_file)')
+        .select('*, items(name, description, item_type, hunger_effect, energy_effect, happiness_effect, xp_effect, image_url)')
         .eq('user_id', currentUser.id)
         .gt('quantity', 0);
 
@@ -273,9 +243,9 @@
 
       grid.innerHTML = inv.map(invItem => {
         const item = invItem.items || {};
-        const emoji = getItemEmoji(item.effect);
-        const imageHtml = item.image_file
-          ? '<img src="images/' + item.image_file + '" alt="' + item.name + '" onerror="this.parentElement.innerHTML=\'' + emoji + '\'" style="width:100%;height:100%;object-fit:cover;">'
+        const emoji = getItemEmoji(item.item_type);
+        const imageHtml = item.image_url
+          ? '<img src="' + item.image_url + '" alt="' + (item.name||'') + '" onerror="this.parentElement.innerHTML=\'' + emoji + '\'" style="width:100%;height:100%;object-fit:cover;">'
           : emoji;
 
         return `
@@ -283,17 +253,15 @@
             <div class="inv-icon">${imageHtml}</div>
             <div class="inv-name">${item.name || 'Unknown Item'}</div>
             <div class="inv-qty">x${invItem.quantity}</div>
-            <button class="btn-use" onclick="openUseModal('${invItem.id}', '${(item.name||'').replace(/'/g,"\\'")}', '${item.effect}', ${item.effect_value || 0})">
+            <button class="btn-use" onclick="openUseModal('${invItem.id}', '${(item.name||'').replace(/'/g,"\\'")}', ${item.hunger_effect||0}, ${item.energy_effect||0}, ${item.happiness_effect||0}, ${item.xp_effect||0})">
               ✨ Use
             </button>
-          </div>
-        `;
+          </div>`;
       }).join('');
     }
 
-    function openUseModal(invId, itemName, effect, effectValue) {
-      selectedInventoryItem = { invId, itemName, effect, effectValue };
-
+    function openUseModal(invId, itemName, hungerEffect, energyEffect, happinessEffect, xpEffect) {
+      selectedInventoryItem = { invId, itemName, hungerEffect, energyEffect, happinessEffect, xpEffect };
       document.getElementById('use-modal-title').textContent = 'Use ' + itemName;
       document.getElementById('use-modal-desc').textContent = 'Which pet would you like to give this to?';
 
@@ -301,13 +269,10 @@
       if (!myPets || myPets.length === 0) {
         list.innerHTML = '<p style="color:var(--text-light);text-align:center;">You have no pets! Adopt one first.</p>';
       } else {
-        list.innerHTML = myPets.map(pet => `
-          <button class="pet-select-btn" onclick="useItemOnPet('${pet.id}', '${(pet.nickname||'').replace(/'/g,"\\'")}')">
-            🐾 ${pet.nickname}
-          </button>
-        `).join('');
+        list.innerHTML = myPets.map(pet =>
+          '<button class="pet-select-btn" onclick="useItemOnPet(\'' + pet.id + '\', \'' + pet.nickname.replace(/'/g,"\\'") + '\')">🐾 ' + pet.nickname + '</button>'
+        ).join('');
       }
-
       document.getElementById('use-modal').classList.add('show');
     }
 
@@ -318,45 +283,30 @@
 
     async function useItemOnPet(petId, petNickname) {
       if (!selectedInventoryItem) return;
-      const { invId, itemName, effect, effectValue } = selectedInventoryItem;
+      const { invId, itemName, hungerEffect, energyEffect, happinessEffect, xpEffect } = selectedInventoryItem;
       closeUseModal();
 
       // Get current pet stats
       const { data: pet } = await supabaseClient
         .from('user_pets')
-        .select('hunger, max_hunger, energy, max_energy, happiness, max_happiness')
-        .eq('id', petId)
-        .single();
+        .select('hunger, max_hunger, energy, max_energy, happiness, max_happiness, xp, level')
+        .eq('id', petId).single();
 
       if (!pet) { showToast('Could not find pet data.'); return; }
 
-      let updates = {};
-      if (effect === 'hunger') {
-        updates.hunger = Math.min(pet.hunger + effectValue, pet.max_hunger);
-      } else if (effect === 'energy') {
-        updates.energy = Math.min(pet.energy + effectValue, pet.max_energy);
-      } else if (effect === 'happiness') {
-        updates.happiness = Math.min(pet.happiness + effectValue, pet.max_happiness);
-      } else if (effect === 'hunger_happiness') {
-        updates.hunger = Math.min(pet.hunger + effectValue, pet.max_hunger);
-        updates.happiness = Math.min(pet.happiness + effectValue, pet.max_happiness);
-      }
+      const updates = {};
+      if (hungerEffect > 0) updates.hunger = Math.min(pet.hunger + hungerEffect, pet.max_hunger);
+      if (energyEffect > 0) updates.energy = Math.min(pet.energy + energyEffect, pet.max_energy);
+      if (happinessEffect > 0) updates.happiness = Math.min(pet.happiness + happinessEffect, pet.max_happiness);
+      if (xpEffect > 0) updates.xp = pet.xp + xpEffect;
 
-      // Apply item effect to pet
       const { error: petError } = await supabaseClient
-        .from('user_pets')
-        .update(updates)
-        .eq('id', petId);
-
+        .from('user_pets').update(updates).eq('id', petId);
       if (petError) { showToast('Something went wrong!'); return; }
 
-      // Reduce inventory quantity
+      // Reduce inventory
       const { data: invRow } = await supabaseClient
-        .from('user_inventory')
-        .select('quantity')
-        .eq('id', invId)
-        .single();
-
+        .from('user_inventory').select('quantity').eq('id', invId).single();
       if (invRow) {
         if (invRow.quantity <= 1) {
           await supabaseClient.from('user_inventory').delete().eq('id', invId);
