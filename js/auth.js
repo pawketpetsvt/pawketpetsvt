@@ -1,4 +1,4 @@
-// auth.js - handles login, registration, and session checking
+// auth.js - handles login, registration, session checking, and daily bonus
 
 // Redirect to home if already logged in
 async function redirectIfLoggedIn() {
@@ -75,6 +75,55 @@ async function loginUser(email, password) {
 async function logoutUser() {
   await supabaseClient.auth.signOut();
   window.location.href = 'login.html';
+}
+
+// Daily login bonus — awards 50 PP once per calendar day
+async function checkDailyBonus(userId) {
+  const today = new Date().toISOString().split('T')[0];
+  const bonusKey = 'daily_bonus_' + userId;
+  const lastClaimed = localStorage.getItem(bonusKey);
+
+  if (lastClaimed === today) {
+    return { awarded: false };
+  }
+
+  const DAILY_BONUS = 50;
+
+  const { data: playerData } = await supabaseClient
+    .from('players')
+    .select('pawketpoints')
+    .eq('id', userId)
+    .single();
+
+  if (!playerData) return { awarded: false };
+
+  const newPoints = playerData.pawketpoints + DAILY_BONUS;
+
+  const { error } = await supabaseClient
+    .from('players')
+    .update({ pawketpoints: newPoints })
+    .eq('id', userId);
+
+  if (!error) {
+    localStorage.setItem(bonusKey, today);
+    return { awarded: true, amount: DAILY_BONUS, newTotal: newPoints };
+  }
+
+  return { awarded: false };
+}
+
+// Calculate energy regen since last interaction
+// Pets regen 5 energy per hour, capped at max_energy
+function calculateEnergyRegen(currentEnergy, maxEnergy, lastPlayedTimestamp) {
+  if (!lastPlayedTimestamp) return currentEnergy;
+
+  const now = new Date();
+  const lastPlayed = new Date(lastPlayedTimestamp);
+  const hoursElapsed = (now - lastPlayed) / (1000 * 60 * 60);
+  const regenAmount = Math.floor(hoursElapsed * 5);
+  const newEnergy = Math.min(currentEnergy + regenAmount, maxEnergy);
+
+  return newEnergy;
 }
 
 // Update nav to show username and pawketpoints if logged in
