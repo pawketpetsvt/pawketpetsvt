@@ -6,8 +6,289 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PawketPetsVT — My Pets</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .pets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .my-pet-card {
+      background: var(--white);
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 6px 24px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .my-pet-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px var(--shadow);
+    }
+
+    .pet-card-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pet-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--purple-light);
+      background: var(--purple-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .pet-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pet-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pet-card-nickname {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      color: var(--purple-dark);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .pet-card-species {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      font-weight: 700;
+    }
+
+    .pet-card-level {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: var(--white);
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.8rem;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-top: 4px;
+    }
+
+    /* Stat bars */
+    .stat-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-light);
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .stat-bar-wrap {
+      flex: 1;
+      height: 14px;
+      background: var(--purple-light);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    .stat-bar-fill.hunger { background: linear-gradient(90deg, #ff9f43, #ffcc70); }
+    .stat-bar-fill.happiness { background: linear-gradient(90deg, var(--pink), #ffb3d9); }
+    .stat-bar-fill.energy { background: linear-gradient(90deg, var(--cyan), #a0f0ff); }
+
+    .stat-value {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-light);
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* XP bar */
+    .xp-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .xp-label {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      font-weight: 700;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .xp-bar-wrap {
+      flex: 1;
+      height: 10px;
+      background: var(--purple-light);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .xp-bar-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      transition: width 0.5s ease;
+    }
+
+    .xp-value {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      font-weight: 700;
+      width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Action buttons */
+    .pet-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-action {
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.95rem;
+      padding: 9px 12px;
+      border-radius: 24px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+      text-align: center;
+    }
+
+    .btn-action:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .btn-action:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-feed {
+      background: linear-gradient(135deg, #ff9f43, #ffcc70);
+      color: var(--white);
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: var(--white);
+    }
+
+    /* Feedback flash */
+    .stat-flash {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--green);
+      min-height: 18px;
+      transition: opacity 0.3s;
+    }
+
+    /* Daily bonus modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(60,20,100,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--white);
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(60,20,100,0.3);
+      animation: modal-pop 0.25s ease-out;
+    }
+    @keyframes modal-pop {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .bonus-coins {
+      font-size: 3.5rem;
+      margin-bottom: 8px;
+      animation: bounce 0.6s ease infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 40px;
+      background: var(--white);
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 6px 24px var(--shadow);
+    }
+
+    .points-banner {
+      background: linear-gradient(135deg, var(--purple-light), var(--pink-light));
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .points-banner .pb-label { font-family: 'Fredoka One', cursive; font-size: 1rem; color: var(--purple-dark); }
+    .points-banner .pb-amount { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: var(--purple); background: var(--white); padding: 4px 16px; border-radius: 20px; box-shadow: 0 2px 8px var(--shadow); }
+  </style>
 </head>
 <body>
+
   <nav class="navbar">
     <div class="navbar-inner">
       <a href="index.html" class="navbar-logo">🐾 <span>Pawket</span>PetsVT</a>
@@ -27,34 +308,333 @@
       </div>
     </div>
   </nav>
+
   <div class="page-wrap">
     <div class="page-hero">
       <div class="sparkle-row">💖 ✦ 💖</div>
       <h1>My Pets</h1>
-      <p>All your adopted pets live here. Feed them, play with them, watch them grow! 🌟</p>
+      <p>Feed them, play with them, and watch them grow! ✨</p>
     </div>
-    <div class="card" style="text-align:center; padding: 60px 40px;">
-      <div style="font-size: 4rem; margin-bottom: 16px;">🚧</div>
-      <h2 style="color: var(--purple-dark); margin-bottom: 12px;">Coming Very Soon!</h2>
-      <p style="color: var(--text-light);">Your pet home is being decorated. Adopt a pet first! ✨</p>
-      <br>
-      <a href="adopt.html" class="btn btn-primary">🐣 Go Adopt a Pet</a>
+
+    <div class="points-banner">
+      <span class="pb-label">🪙 Your PawketPoints</span>
+      <span class="pb-amount" id="points-display">0 PP</span>
+    </div>
+
+    <div id="pets-container">
+      <div class="spinner"></div>
     </div>
   </div>
+
+  <!-- Daily bonus modal -->
+  <div class="modal-overlay" id="bonus-modal">
+    <div class="modal">
+      <div class="bonus-coins">🪙</div>
+      <h2 style="color:var(--purple-dark); margin-bottom:8px;">Daily Bonus!</h2>
+      <p style="color:var(--text-light); margin-bottom:20px;">
+        Welcome back! You earned <strong style="color:var(--purple); font-size:1.2rem;" id="bonus-amount">50 PP</strong> for logging in today!
+      </p>
+      <p style="color:var(--text-light); font-size:0.9rem; margin-bottom:20px;">Come back tomorrow for another bonus! ✨</p>
+      <button class="btn btn-primary btn-lg" onclick="closeBonusModal()">✨ Awesome!</button>
+    </div>
+  </div>
+
   <footer class="footer">
     <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
     <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
   </footer>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    (async () => {
+    let currentUser = null;
+    let currentPoints = 0;
+
+    async function init() {
       const session = await requireLogin();
       if (!session) return;
+
       await updateNav();
       document.getElementById('nav-points').style.display = 'inline-block';
-    })();
+      currentUser = session.user;
+
+      // Check daily bonus
+      const bonus = await checkDailyBonus(currentUser.id);
+      if (bonus.awarded) {
+        document.getElementById('bonus-amount').textContent = bonus.amount + ' PP';
+        document.getElementById('bonus-modal').classList.add('show');
+        currentPoints = bonus.newTotal;
+      } else {
+        const { data: playerData } = await supabaseClient
+          .from('players')
+          .select('pawketpoints')
+          .eq('id', currentUser.id)
+          .single();
+        if (playerData) currentPoints = playerData.pawketpoints;
+      }
+
+      updatePointsDisplay();
+      await loadMyPets();
+    }
+
+    function updatePointsDisplay() {
+      const el = document.getElementById('points-display');
+      if (el) el.textContent = currentPoints + ' PP';
+      const navEl = document.getElementById('nav-points');
+      if (navEl) navEl.textContent = '🪙 ' + currentPoints + ' PP';
+    }
+
+    function closeBonusModal() {
+      document.getElementById('bonus-modal').classList.remove('show');
+    }
+
+    async function loadMyPets() {
+      const container = document.getElementById('pets-container');
+
+      // Load user's pets joined with pet catalog data
+      const { data: userPets, error } = await supabaseClient
+        .from('user_pets')
+        .select('*, pets(name, image_file, vtuber_name, description)')
+        .eq('user_id', currentUser.id)
+        .order('adopted_at', { ascending: true });
+
+      if (error) {
+        container.innerHTML = '<p style="text-align:center;color:var(--text-light);">Could not load pets. Please refresh.</p>';
+        return;
+      }
+
+      if (!userPets || userPets.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:3.5rem; margin-bottom:16px;">🐾</div>
+            <h2 style="color:var(--purple-dark); margin-bottom:10px;">No pets yet!</h2>
+            <p style="color:var(--text-light); margin-bottom:20px;">Head to the adoption centre to find your first companion!</p>
+            <a href="adopt.html" class="btn btn-primary btn-lg">🐣 Adopt a Pet</a>
+          </div>`;
+        return;
+      }
+
+      // Apply energy regen to each pet before rendering
+      const petsWithRegen = userPets.map(pet => {
+        const regenEnergy = calculateEnergyRegen(pet.energy, pet.max_energy, pet.last_played);
+        return { ...pet, energy: regenEnergy };
+      });
+
+      container.innerHTML = `<div class="pets-grid">${petsWithRegen.map(pet => renderMyPetCard(pet)).join('')}</div>`;
+    }
+
+    function renderMyPetCard(pet) {
+      const petInfo = pet.pets || {};
+      const xpForNextLevel = pet.level * 100;
+      const xpPercent = Math.min((pet.xp / xpForNextLevel) * 100, 100);
+
+      const hungerPct = Math.round((pet.hunger / pet.max_hunger) * 100);
+      const happinessPct = Math.round((pet.happiness / pet.max_happiness) * 100);
+      const energyPct = Math.round((pet.energy / pet.max_energy) * 100);
+
+      const imageHtml = petInfo.image_file
+        ? `<img src="images/${petInfo.image_file}" alt="${pet.nickname}" onerror="this.parentElement.innerHTML='🐾'">`
+        : '🐾';
+
+      const canFeed = pet.hunger < pet.max_hunger;
+      const canPlay = pet.energy >= 10;
+
+      return `
+        <div class="my-pet-card" id="petcard-${pet.id}">
+          <div class="pet-card-header">
+            <div class="pet-avatar">${imageHtml}</div>
+            <div class="pet-card-info">
+              <div class="pet-card-nickname">${pet.nickname}</div>
+              <div class="pet-card-species">${petInfo.vtuber_name ? '🎭 ' + petInfo.vtuber_name : ''}</div>
+              <div class="pet-card-level">Lv. ${pet.level}</div>
+            </div>
+          </div>
+
+          <div class="stat-bars">
+            <div class="stat-row">
+              <span class="stat-label">🍖 Hunger</span>
+              <div class="stat-bar-wrap">
+                <div class="stat-bar-fill hunger" id="hunger-bar-${pet.id}" style="width:${hungerPct}%"></div>
+              </div>
+              <span class="stat-value" id="hunger-val-${pet.id}">${pet.hunger}/${pet.max_hunger}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">💖 Happiness</span>
+              <div class="stat-bar-wrap">
+                <div class="stat-bar-fill happiness" id="happiness-bar-${pet.id}" style="width:${happinessPct}%"></div>
+              </div>
+              <span class="stat-value" id="happiness-val-${pet.id}">${pet.happiness}/${pet.max_happiness}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">⚡ Energy</span>
+              <div class="stat-bar-wrap">
+                <div class="stat-bar-fill energy" id="energy-bar-${pet.id}" style="width:${energyPct}%"></div>
+              </div>
+              <span class="stat-value" id="energy-val-${pet.id}">${pet.energy}/${pet.max_energy}</span>
+            </div>
+            <div class="xp-row">
+              <span class="xp-label">✨ XP</span>
+              <div class="xp-bar-wrap">
+                <div class="xp-bar-fill" id="xp-bar-${pet.id}" style="width:${xpPercent}%"></div>
+              </div>
+              <span class="xp-value" id="xp-val-${pet.id}">${pet.xp}/${xpForNextLevel}</span>
+            </div>
+          </div>
+
+          <div class="pet-actions">
+            <button class="btn-action btn-feed"
+              id="feed-btn-${pet.id}"
+              onclick="feedPet('${pet.id}', ${pet.hunger}, ${pet.max_hunger}, ${pet.happiness}, ${pet.max_happiness}, ${pet.xp}, ${pet.level})"
+              ${!canFeed ? 'disabled' : ''}>
+              ${canFeed ? '🍖 Feed' : '🍖 Full!'}
+            </button>
+            <button class="btn-action btn-play"
+              id="play-btn-${pet.id}"
+              onclick="playWithPet('${pet.id}', ${pet.energy}, ${pet.max_energy}, ${pet.happiness}, ${pet.max_happiness}, ${pet.xp}, ${pet.level})"
+              ${!canPlay ? 'disabled' : ''}>
+              ${canPlay ? '🎾 Play' : '⚡ Tired!'}
+            </button>
+          </div>
+
+          <div class="stat-flash" id="flash-${pet.id}"></div>
+        </div>
+      `;
+    }
+
+    async function feedPet(petId, hunger, maxHunger, happiness, maxHappiness, xp, level) {
+      const btn = document.getElementById('feed-btn-' + petId);
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      const newHunger = Math.min(hunger + 20, maxHunger);
+      const newHappiness = Math.min(happiness + 5, maxHappiness);
+      const xpGain = 10;
+      const newXp = xp + xpGain;
+      const xpForNext = level * 100;
+
+      let newLevel = level;
+      let finalXp = newXp;
+      if (newXp >= xpForNext) {
+        newLevel = level + 1;
+        finalXp = newXp - xpForNext;
+        showFlash(petId, '🎉 Level up! Now Lv.' + newLevel + '!', '#b06aff');
+      } else {
+        showFlash(petId, '+20 Hunger  +5 Happiness  +' + xpGain + ' XP', '#5dde7a');
+      }
+
+      const { error } = await supabaseClient
+        .from('user_pets')
+        .update({
+          hunger: newHunger,
+          happiness: newHappiness,
+          xp: finalXp,
+          level: newLevel,
+          last_fed: new Date().toISOString()
+        })
+        .eq('id', petId);
+
+      if (error) {
+        showFlash(petId, 'Something went wrong!', '#ff6eb4');
+        btn.disabled = false;
+        btn.textContent = '🍖 Feed';
+        return;
+      }
+
+      // Update UI
+      updateStatBar(petId, 'hunger', newHunger, maxHunger);
+      updateStatBar(petId, 'happiness', newHappiness, maxHappiness);
+      updateXpBar(petId, finalXp, newLevel);
+
+      if (newHunger >= maxHunger) {
+        btn.textContent = '🍖 Full!';
+      } else {
+        btn.disabled = false;
+        btn.textContent = '🍖 Feed';
+      }
+    }
+
+    async function playWithPet(petId, energy, maxEnergy, happiness, maxHappiness, xp, level) {
+      if (energy < 10) return;
+
+      const btn = document.getElementById('play-btn-' + petId);
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      const newEnergy = Math.max(energy - 10, 0);
+      const newHappiness = Math.min(happiness + 15, maxHappiness);
+      const xpGain = 15;
+      const newXp = xp + xpGain;
+      const xpForNext = level * 100;
+
+      let newLevel = level;
+      let finalXp = newXp;
+      if (newXp >= xpForNext) {
+        newLevel = level + 1;
+        finalXp = newXp - xpForNext;
+        showFlash(petId, '🎉 Level up! Now Lv.' + newLevel + '!', '#b06aff');
+      } else {
+        showFlash(petId, '-10 Energy  +15 Happiness  +' + xpGain + ' XP', '#5dde7a');
+      }
+
+      const { error } = await supabaseClient
+        .from('user_pets')
+        .update({
+          energy: newEnergy,
+          happiness: newHappiness,
+          xp: finalXp,
+          level: newLevel,
+          last_played: new Date().toISOString()
+        })
+        .eq('id', petId);
+
+      if (error) {
+        showFlash(petId, 'Something went wrong!', '#ff6eb4');
+        btn.disabled = false;
+        btn.textContent = '🎾 Play';
+        return;
+      }
+
+      updateStatBar(petId, 'energy', newEnergy, maxEnergy);
+      updateStatBar(petId, 'happiness', newHappiness, maxHappiness);
+      updateXpBar(petId, finalXp, newLevel);
+
+      if (newEnergy < 10) {
+        btn.textContent = '⚡ Tired!';
+      } else {
+        btn.disabled = false;
+        btn.textContent = '🎾 Play';
+      }
+    }
+
+    function updateStatBar(petId, stat, value, max) {
+      const pct = Math.round((value / max) * 100);
+      const bar = document.getElementById(stat + '-bar-' + petId);
+      const val = document.getElementById(stat + '-val-' + petId);
+      if (bar) bar.style.width = pct + '%';
+      if (val) val.textContent = value + '/' + max;
+    }
+
+    function updateXpBar(petId, xp, level) {
+      const xpForNext = level * 100;
+      const pct = Math.min((xp / xpForNext) * 100, 100);
+      const bar = document.getElementById('xp-bar-' + petId);
+      const val = document.getElementById('xp-val-' + petId);
+      if (bar) bar.style.width = pct + '%';
+      if (val) val.textContent = xp + '/' + xpForNext;
+    }
+
+    function showFlash(petId, message, color) {
+      const el = document.getElementById('flash-' + petId);
+      if (!el) return;
+      el.textContent = message;
+      el.style.color = color || 'var(--green)';
+      el.style.opacity = '1';
+      setTimeout(() => { el.style.opacity = '0'; }, 2500);
+    }
+
+    init();
   </script>
+
 </body>
 </html>
