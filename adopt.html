@@ -6,6 +6,288 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PawketPetsVT — Adopt a Pet</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .pets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .pet-card {
+      background: var(--white);
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 6px 24px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pet-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 32px var(--shadow);
+    }
+
+    .pet-card.placeholder {
+      background: linear-gradient(135deg, #f0e8ff, #ffe8f5);
+      border-style: dashed;
+    }
+
+    .pet-card.already-owned {
+      border-color: var(--green);
+      background: linear-gradient(135deg, #f0fff4, #e8fff0);
+    }
+
+    .pet-image-wrap {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid var(--purple-light);
+      background: var(--purple-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      box-shadow: 0 4px 16px var(--shadow);
+    }
+
+    .pet-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pet-image-placeholder {
+      font-size: 3.5rem;
+      line-height: 1;
+    }
+
+    .pet-name {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.4rem;
+      color: var(--purple-dark);
+      margin: 4px 0 0;
+    }
+
+    .pet-vtuber {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pet-description {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .pet-price {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      color: var(--purple);
+      background: var(--purple-light);
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+
+    .pet-price.free {
+      color: var(--white);
+      background: linear-gradient(135deg, var(--green), #3ab85a);
+    }
+
+    .btn-adopt {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .btn-owned {
+      width: 100%;
+      margin-top: 4px;
+      background: var(--green);
+      color: var(--white);
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      padding: 10px 24px;
+      border-radius: 30px;
+      border: none;
+      cursor: default;
+    }
+
+    .btn-locked {
+      width: 100%;
+      margin-top: 4px;
+      background: #ddd;
+      color: #999;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      padding: 10px 24px;
+      border-radius: 30px;
+      border: none;
+      cursor: not-allowed;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(60, 20, 100, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--white);
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(60,20,100,0.3);
+      animation: modal-pop 0.2s ease-out;
+    }
+
+    @keyframes modal-pop {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal h2 {
+      font-size: 1.8rem;
+      color: var(--purple-dark);
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      color: var(--text-light);
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .modal-image {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid var(--purple-light);
+      background: var(--purple-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 3rem;
+      overflow: hidden;
+    }
+
+    .modal-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .modal-nickname-group {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .modal-nickname-group label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .modal-nickname-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--cream);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .modal-nickname-group input:focus {
+      border-color: var(--purple);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+    }
+
+    .points-banner {
+      background: linear-gradient(135deg, var(--purple-light), var(--pink-light));
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .points-banner .pb-label {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      color: var(--purple-dark);
+    }
+
+    .points-banner .pb-amount {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      color: var(--purple);
+      background: var(--white);
+      padding: 4px 16px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .login-prompt {
+      background: linear-gradient(135deg, var(--purple-light), var(--pink-light));
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .login-prompt h2 {
+      color: var(--purple-dark);
+      margin-bottom: 10px;
+    }
+
+    .login-prompt p {
+      color: var(--text-light);
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
 
@@ -33,12 +315,56 @@
     <div class="page-hero">
       <div class="sparkle-row">🐣 ✦ 🐣</div>
       <h1>Adopt a Pet!</h1>
-      <p>Choose a VTuber pet to add to your collection. Each one is unique! ✨</p>
+      <p>Choose a VTuber pet to add to your collection. Your first pet is always free! ✨</p>
     </div>
-    <div class="card" style="text-align:center; padding: 60px 40px;">
-      <div style="font-size: 4rem; margin-bottom: 16px;">🚧</div>
-      <h2 style="color: var(--purple-dark); margin-bottom: 12px;">Coming Very Soon!</h2>
-      <p style="color: var(--text-light);">The adoption centre is being set up. Check back soon to meet your new pets! ✨</p>
+
+    <!-- Points banner (shown when logged in) -->
+    <div class="points-banner" id="points-banner" style="display:none">
+      <span class="pb-label">🪙 Your PawketPoints</span>
+      <span class="pb-amount" id="points-display">0 PP</span>
+    </div>
+
+    <!-- Login prompt (shown when logged out) -->
+    <div class="login-prompt" id="login-prompt" style="display:none">
+      <h2>🐾 Ready to adopt?</h2>
+      <p>Create a free account to start collecting pets!</p>
+      <a href="register.html" class="btn btn-primary" style="margin-right:10px;">✨ Register Free</a>
+      <a href="login.html" class="btn btn-outline">Login</a>
+    </div>
+
+    <!-- Pet grid -->
+    <div id="pets-grid" class="pets-grid">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Adopt confirmation modal -->
+  <div class="modal-overlay" id="adopt-modal">
+    <div class="modal">
+      <div class="modal-image" id="modal-image">🐾</div>
+      <h2 id="modal-title">Adopt this pet?</h2>
+      <p id="modal-desc">Give your new pet a nickname!</p>
+      <div class="modal-nickname-group">
+        <label for="nickname-input">Nickname <span style="color:var(--text-light); font-weight:400">(or leave blank to use their name)</span></label>
+        <input type="text" id="nickname-input" placeholder="e.g. Ember the Brave" maxlength="30" />
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="confirm-adopt-btn" onclick="confirmAdopt()">💖 Adopt!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success modal -->
+  <div class="modal-overlay" id="success-modal">
+    <div class="modal">
+      <div style="font-size:4rem; margin-bottom:12px;">🎉</div>
+      <h2 style="color:var(--purple-dark)">Welcome home!</h2>
+      <p id="success-message">Your new pet has been adopted!</p>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button class="btn btn-outline" onclick="closeSuccessModal()">Adopt More</button>
+        <a href="mypets.html" class="btn btn-primary">💖 My Pets</a>
+      </div>
     </div>
   </div>
 
@@ -51,8 +377,205 @@
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    updateNav();
-    document.getElementById('nav-points').style.display = 'inline-block';
+    let currentUser = null;
+    let currentPoints = 0;
+    let ownedPetIds = [];
+    let selectedPet = null;
+    let totalOwnedCount = 0;
+
+    async function init() {
+      await updateNav();
+      document.getElementById('nav-points').style.display = 'inline-block';
+
+      currentUser = await getCurrentUser();
+
+      if (currentUser) {
+        // Load player data
+        const { data: playerData } = await supabaseClient
+          .from('players')
+          .select('pawketpoints')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (playerData) {
+          currentPoints = playerData.pawketpoints;
+          document.getElementById('points-display').textContent = currentPoints + ' PP';
+        }
+
+        document.getElementById('points-banner').style.display = 'flex';
+
+        // Load which pets this user already owns
+        const { data: owned } = await supabaseClient
+          .from('user_pets')
+          .select('pet_id')
+          .eq('user_id', currentUser.id);
+
+        if (owned) {
+          ownedPetIds = owned.map(p => p.pet_id);
+          totalOwnedCount = owned.length;
+        }
+      } else {
+        document.getElementById('login-prompt').style.display = 'block';
+      }
+
+      await loadPets();
+    }
+
+    async function loadPets() {
+      const grid = document.getElementById('pets-grid');
+
+      const { data: pets, error } = await supabaseClient
+        .from('pets')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error || !pets) {
+        grid.innerHTML = '<p style="text-align:center; color:var(--text-light);">Could not load pets. Please try again later.</p>';
+        return;
+      }
+
+      grid.innerHTML = pets.map(pet => renderPetCard(pet)).join('');
+    }
+
+    function renderPetCard(pet) {
+      const isPlaceholder = pet.name === '???';
+      const isOwned = ownedPetIds.includes(pet.id);
+      const isFree = totalOwnedCount === 0;
+      const effectivePrice = isFree ? 0 : pet.price;
+      const canAfford = currentPoints >= effectivePrice;
+
+      // Image or emoji placeholder
+      const imageHtml = pet.image_file && !isPlaceholder
+        ? `<img src="images/${pet.image_file}" alt="${pet.name}" onerror="this.parentElement.innerHTML='<span class=pet-image-placeholder>🐾</span>'">`
+        : `<span class="pet-image-placeholder">${isPlaceholder ? '❓' : '🐾'}</span>`;
+
+      // Price tag
+      const priceHtml = isPlaceholder
+        ? ''
+        : effectivePrice === 0
+          ? `<span class="pet-price free">✨ FREE</span>`
+          : `<span class="pet-price">🪙 ${pet.price} PP</span>`;
+
+      // Button
+      let buttonHtml = '';
+      if (isPlaceholder) {
+        buttonHtml = `<button class="btn-locked">🔒 Coming Soon</button>`;
+      } else if (!currentUser) {
+        buttonHtml = `<a href="login.html" class="btn btn-primary btn-adopt">Login to Adopt</a>`;
+      } else if (isOwned) {
+        buttonHtml = `<button class="btn-owned">✅ Already Adopted!</button>`;
+      } else if (!canAfford) {
+        buttonHtml = `<button class="btn-locked">Not enough PP (need ${pet.price})</button>`;
+      } else {
+        buttonHtml = `<button class="btn btn-primary btn-adopt" onclick="openAdoptModal('${pet.id}', '${escapeStr(pet.name)}', '${escapeStr(pet.description || '')}', '${escapeStr(pet.image_file || '')}', ${effectivePrice})">🐣 Adopt!</button>`;
+      }
+
+      return `
+        <div class="pet-card ${isPlaceholder ? 'placeholder' : ''} ${isOwned ? 'already-owned' : ''}">
+          <div class="pet-image-wrap">${imageHtml}</div>
+          <div class="pet-name">${isPlaceholder ? '???' : pet.name}</div>
+          ${pet.vtuber_name && !isPlaceholder ? `<div class="pet-vtuber">🎭 ${pet.vtuber_name}</div>` : ''}
+          <div class="pet-description">${isPlaceholder ? 'A mystery pet shrouded in shadow... who could it be? 👀' : (pet.description || '')}</div>
+          ${priceHtml}
+          ${buttonHtml}
+        </div>
+      `;
+    }
+
+    function escapeStr(str) {
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    function openAdoptModal(petId, petName, petDesc, imageFile, price) {
+      selectedPet = { id: petId, name: petName, description: petDesc, image_file: imageFile, price: price };
+
+      // Set modal content
+      const modalImage = document.getElementById('modal-image');
+      if (imageFile) {
+        modalImage.innerHTML = `<img src="images/${imageFile}" alt="${petName}" onerror="this.parentElement.innerHTML='🐾'">`;
+      } else {
+        modalImage.innerHTML = '🐾';
+      }
+
+      document.getElementById('modal-title').textContent = 'Adopt ' + petName + '?';
+      document.getElementById('modal-desc').textContent = price === 0
+        ? 'Your first pet is free! Give them a nickname below. 🎉'
+        : 'This will cost ' + price + ' PawketPoints. Give them a nickname!';
+
+      document.getElementById('nickname-input').value = '';
+      document.getElementById('adopt-modal').classList.add('show');
+    }
+
+    function closeModal() {
+      document.getElementById('adopt-modal').classList.remove('show');
+      selectedPet = null;
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('success-modal').classList.remove('show');
+      // Reload the page to refresh owned status
+      window.location.reload();
+    }
+
+    async function confirmAdopt() {
+      if (!selectedPet || !currentUser) return;
+
+      const btn = document.getElementById('confirm-adopt-btn');
+      const nickname = document.getElementById('nickname-input').value.trim() || selectedPet.name;
+
+      btn.textContent = 'Adopting...';
+      btn.disabled = true;
+
+      try {
+        // Insert into user_pets
+        const { error: adoptError } = await supabaseClient
+          .from('user_pets')
+          .insert([{
+            user_id: currentUser.id,
+            pet_id: selectedPet.id,
+            nickname: nickname,
+            level: 1,
+            xp: 0,
+            hunger: 50,
+            energy: 50,
+            happiness: 50,
+            max_hunger: 100,
+            max_energy: 100,
+            max_happiness: 100
+          }]);
+
+        if (adoptError) throw new Error(adoptError.message);
+
+        // Deduct points if not free
+        if (selectedPet.price > 0) {
+          const newPoints = currentPoints - selectedPet.price;
+          const { error: pointsError } = await supabaseClient
+            .from('players')
+            .update({ pawketpoints: newPoints })
+            .eq('id', currentUser.id);
+
+          if (pointsError) throw new Error(pointsError.message);
+          currentPoints = newPoints;
+        }
+
+        // Close adopt modal, show success
+        closeModal();
+        document.getElementById('success-message').textContent =
+          nickname + ' has joined your collection! Take good care of them! 💖';
+        document.getElementById('success-modal').classList.add('show');
+
+        // Update owned list
+        ownedPetIds.push(selectedPet.id);
+        totalOwnedCount++;
+
+      } catch (err) {
+        alert('Something went wrong: ' + err.message);
+        btn.textContent = '💖 Adopt!';
+        btn.disabled = false;
+      }
+    }
+
+    init();
   </script>
 
 </body>
