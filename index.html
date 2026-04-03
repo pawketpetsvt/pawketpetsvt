@@ -9,18 +9,16 @@
 </head>
 <body>
 
-  <!-- ── News Ticker ── -->
   <div class="news-ticker">
     <div class="news-ticker-inner">
       ✦ Welcome to PawketPetsVT! ✦ &nbsp;&nbsp; Adopt your first pet today! ✧ &nbsp;&nbsp; Watch Embertail &amp; Pyxshuul live on Twitch! ✦ &nbsp;&nbsp; New members coming soon... ✧ &nbsp;&nbsp; Earn PawketPoints by playing minigames! ✦ &nbsp;&nbsp; Stay tuned for updates! ✧ &nbsp;&nbsp;
     </div>
   </div>
 
-  <!-- ── Navigation ── -->
   <nav class="navbar">
     <div class="navbar-inner">
       <div class="navbar-logo">🐾 <span>Pawket</span>PetsVT</div>
-      <div class="navbar-links">
+      <div class="navbar-links" id="nav-links-loggedin" style="display:none">
         <a href="index.html" class="active">🏠 Home</a>
         <a href="adopt.html">🐣 Adopt</a>
         <a href="mypets.html">💖 My Pets</a>
@@ -38,8 +36,6 @@
   </nav>
 
   <div class="page-wrap">
-
-    <!-- ── Welcome Panel ── -->
     <div class="welcome-panel">
       <div class="logo-placeholder">🐾</div>
       <h1>Welcome to PawketPetsVT!</h1>
@@ -49,52 +45,31 @@
         <em>and</em> on our Twitch streams! ✨
       </p>
       <div id="home-cta"></div>
-
       <div class="social-links" style="margin-top: 20px;">
-        <a href="https://twitch.tv/Embertail" target="_blank" class="social-link">
-          🟣 Embertail on Twitch
-        </a>
-        <a href="https://twitch.tv/Pyxshuul" target="_blank" class="social-link">
-          🟣 Pyxshuul on Twitch
-        </a>
+        <a href="https://twitch.tv/Embertail" target="_blank" class="social-link">🟣 Embertail on Twitch</a>
+        <a href="https://twitch.tv/Pyxshuul" target="_blank" class="social-link">🟣 Pyxshuul on Twitch</a>
       </div>
     </div>
 
-    <!-- ── Quick Links ── -->
-    <div class="section-header">
-      <h2>✦ What do you want to do?</h2>
-      <div class="section-line"></div>
+    <!-- Only shown when logged in -->
+    <div id="loggedin-section" style="display:none">
+      <div class="section-header">
+        <h2>✦ What do you want to do?</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="quicklinks">
+        <a href="adopt.html" class="quicklink-card"><span class="ql-icon">🐣</span><span class="ql-label">Adopt a Pet</span></a>
+        <a href="mypets.html" class="quicklink-card"><span class="ql-icon">💖</span><span class="ql-label">My Pets</span></a>
+        <a href="shop.html" class="quicklink-card"><span class="ql-icon">🛍️</span><span class="ql-label">Shop</span></a>
+        <a href="minigames.html" class="quicklink-card"><span class="ql-icon">🎮</span><span class="ql-label">Minigames</span></a>
+        <a href="news.html" class="quicklink-card"><span class="ql-icon">📰</span><span class="ql-label">News</span></a>
+      </div>
     </div>
 
-    <div class="quicklinks">
-      <a href="adopt.html" class="quicklink-card">
-        <span class="ql-icon">🐣</span>
-        <span class="ql-label">Adopt a Pet</span>
-      </a>
-      <a href="mypets.html" class="quicklink-card">
-        <span class="ql-icon">💖</span>
-        <span class="ql-label">My Pets</span>
-      </a>
-      <a href="shop.html" class="quicklink-card">
-        <span class="ql-icon">🛍️</span>
-        <span class="ql-label">Shop</span>
-      </a>
-      <a href="minigames.html" class="quicklink-card">
-        <span class="ql-icon">🎮</span>
-        <span class="ql-label">Minigames</span>
-      </a>
-      <a href="news.html" class="quicklink-card">
-        <span class="ql-icon">📰</span>
-        <span class="ql-label">News</span>
-      </a>
-    </div>
-
-    <!-- ── About Blurb ── -->
     <div class="section-header">
       <h2>✧ About PawketPetsVT</h2>
       <div class="section-line"></div>
     </div>
-
     <div class="card" style="line-height: 1.8; color: var(--text-light); font-size: 1rem;">
       <p>
         <strong style="color: var(--purple-dark);">PawketPetsVT</strong> is a fan-interactive pet game
@@ -110,10 +85,8 @@
         the more your pets will grow! 🌟
       </p>
     </div>
-
   </div>
 
-  <!-- ── Footer ── -->
   <footer class="footer">
     <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
     <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖 &nbsp;|&nbsp;
@@ -121,7 +94,6 @@
     </p>
   </footer>
 
-  <!-- ── Scripts load at bottom in correct order ── -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
@@ -133,13 +105,15 @@
 
       if (user) {
         document.getElementById('nav-points').style.display = 'inline-block';
+        document.getElementById('nav-links-loggedin').style.display = 'flex';
+        document.getElementById('loggedin-section').style.display = 'block';
         cta.innerHTML = `
           <a href="mypets.html" class="btn btn-primary btn-lg" style="margin-right:10px;">💖 My Pets</a>
           <a href="adopt.html" class="btn btn-secondary btn-lg">🐣 Adopt More</a>
         `;
       } else {
         cta.innerHTML = `
-          <a href="register.html" class="btn btn-primary btn-lg" style="margin-right:10px;">✨ Get Started</a>
+          <a href="register.html" class="btn btn-primary btn-lg" style="margin-right:10px;">✨ Get Started Free</a>
           <a href="login.html" class="btn btn-outline btn-lg">Login</a>
         `;
       }

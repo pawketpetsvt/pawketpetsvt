@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-
   <nav class="navbar">
     <div class="navbar-inner">
       <a href="index.html" class="navbar-logo">🐾 <span>Pawket</span>PetsVT</a>
@@ -28,7 +27,6 @@
       </div>
     </div>
   </nav>
-
   <div class="page-wrap">
     <div class="page-hero">
       <div class="sparkle-row">🎮 ✦ 🎮</div>
@@ -41,19 +39,20 @@
       <p style="color: var(--text-light);">Our game developers (us, at 2am) are working hard. First minigame coming soon! ✨</p>
     </div>
   </div>
-
   <footer class="footer">
     <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
     <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
   </footer>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    updateNav();
-    document.getElementById('nav-points').style.display = 'inline-block';
+    (async () => {
+      const session = await requireLogin();
+      if (!session) return;
+      await updateNav();
+      document.getElementById('nav-points').style.display = 'inline-block';
+    })();
   </script>
-
 </body>
 </html>
