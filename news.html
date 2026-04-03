@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'self' https://hqzugbxutgefjilgmxqu.supabase.co https://*.supabase.co data: blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PawketPetsVT — News</title>
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
   <style>
     .news-post {
       background: var(--white);
@@ -50,6 +49,7 @@
   </style>
 </head>
 <body>
+
   <nav class="navbar">
     <div class="navbar-inner">
       <a href="index.html" class="navbar-logo">🐾 <span>Pawket</span>PetsVT</a>
@@ -76,7 +76,6 @@
       <h1>News & Announcements</h1>
       <p>Stay up to date with everything happening in PawketPetsVT! ✨</p>
     </div>
-
     <div id="news-container">
       <div class="spinner"></div>
     </div>
@@ -87,13 +86,15 @@
     <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script>
     updateNav();
+    document.getElementById('nav-points').style.display = 'inline-block';
 
     async function loadNews() {
       const container = document.getElementById('news-container');
-
       const { data: posts, error } = await supabaseClient
         .from('news')
         .select('*')
@@ -127,5 +128,6 @@
 
     loadNews();
   </script>
+
 </body>
 </html>

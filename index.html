@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'self' https://hqzugbxutgefjilgmxqu.supabase.co https://*.supabase.co data: blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PawketPetsVT — Home</title>
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
 </head>
 <body>
 
@@ -49,11 +48,8 @@
         favourite VTubers, play games, collect items, and earn rewards — both here
         <em>and</em> on our Twitch streams! ✨
       </p>
-      <div id="home-cta">
-        <!-- Shown/hidden by JS based on login state -->
-      </div>
+      <div id="home-cta"></div>
 
-      <!-- Social Links -->
       <div class="social-links" style="margin-top: 20px;">
         <a href="https://twitch.tv/Embertail" target="_blank" class="social-link">
           🟣 Embertail on Twitch
@@ -61,7 +57,6 @@
         <a href="https://twitch.tv/Pyxshuul" target="_blank" class="social-link">
           🟣 Pyxshuul on Twitch
         </a>
-        <!-- Add more socials here as needed -->
       </div>
     </div>
 
@@ -126,17 +121,17 @@
     </p>
   </footer>
 
+  <!-- ── Scripts load at bottom in correct order ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    // On page load
     (async () => {
       await updateNav();
-
       const user = await getCurrentUser();
       const cta = document.getElementById('home-cta');
 
       if (user) {
-        // Show points in nav
         document.getElementById('nav-points').style.display = 'inline-block';
         cta.innerHTML = `
           <a href="mypets.html" class="btn btn-primary btn-lg" style="margin-right:10px;">💖 My Pets</a>

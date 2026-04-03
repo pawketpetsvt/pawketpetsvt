@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'self' https://hqzugbxutgefjilgmxqu.supabase.co https://*.supabase.co data: blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PawketPetsVT — My Pets</title>
   <link rel="stylesheet" href="css/style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
 </head>
 <body>
+
   <nav class="navbar">
     <div class="navbar-inner">
       <a href="index.html" class="navbar-logo">🐾 <span>Pawket</span>PetsVT</a>
@@ -28,6 +28,7 @@
       </div>
     </div>
   </nav>
+
   <div class="page-wrap">
     <div class="page-hero">
       <div class="sparkle-row">💖 ✦ 💖</div>
@@ -42,11 +43,19 @@
       <a href="adopt.html" class="btn btn-primary">🐣 Go Adopt a Pet</a>
     </div>
   </div>
+
   <footer class="footer">
     <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
     <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
-  <script>updateNav(); document.getElementById('nav-points').style.display='inline-block';</script>
+  <script>
+    updateNav();
+    document.getElementById('nav-points').style.display = 'inline-block';
+  </script>
+
 </body>
 </html>
