@@ -112,7 +112,7 @@
       <p id="modal-desc">Give your new pet a nickname!</p>
       <div class="modal-nickname-group">
         <label for="nickname-input">Nickname <span style="color:var(--text-light); font-weight:400">(or leave blank to use their name)</span></label>
-        <input type="text" id="nickname-input" placeholder="e.g. Ember the Brave" maxlength="30" />
+        <input type="text" id="nickname-input" placeholder="e.g. Ember the Brave" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();}" />
       </div>
       <div class="modal-buttons">
         <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
