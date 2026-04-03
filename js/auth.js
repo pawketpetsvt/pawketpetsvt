@@ -112,18 +112,38 @@ async function checkDailyBonus(userId) {
   return { awarded: false };
 }
 
-// Calculate energy regen since last interaction
+// Calculate energy regen since last played
 // Pets regen 5 energy per hour, capped at max_energy
 function calculateEnergyRegen(currentEnergy, maxEnergy, lastPlayedTimestamp) {
   if (!lastPlayedTimestamp) return currentEnergy;
-
   const now = new Date();
   const lastPlayed = new Date(lastPlayedTimestamp);
   const hoursElapsed = (now - lastPlayed) / (1000 * 60 * 60);
   const regenAmount = Math.floor(hoursElapsed * 5);
-  const newEnergy = Math.min(currentEnergy + regenAmount, maxEnergy);
+  return Math.min(currentEnergy + regenAmount, maxEnergy);
+}
 
-  return newEnergy;
+// Calculate happiness decay since last interaction
+// Happiness decays 1 point per hour (20 per day), minimum 0
+function calculateHappinessDecay(currentHappiness, lastFedTimestamp, lastPlayedTimestamp) {
+  // Use whichever interaction was most recent
+  let lastInteraction = null;
+  if (lastFedTimestamp && lastPlayedTimestamp) {
+    lastInteraction = new Date(lastFedTimestamp) > new Date(lastPlayedTimestamp)
+      ? new Date(lastFedTimestamp)
+      : new Date(lastPlayedTimestamp);
+  } else if (lastFedTimestamp) {
+    lastInteraction = new Date(lastFedTimestamp);
+  } else if (lastPlayedTimestamp) {
+    lastInteraction = new Date(lastPlayedTimestamp);
+  } else {
+    return currentHappiness;
+  }
+
+  const now = new Date();
+  const hoursElapsed = (now - lastInteraction) / (1000 * 60 * 60);
+  const decayAmount = Math.floor(hoursElapsed * 1);
+  return Math.max(currentHappiness - decayAmount, 0);
 }
 
 // Update nav to show username and pawketpoints if logged in
