@@ -208,17 +208,22 @@
         .from('players').update({ pawketpoints: newPoints }).eq('id', currentUser.id);
       if (pointsError) { showToast('Something went wrong! Try again.'); return; }
 
-      // Check if already in inventory
+      // Check if already in inventory then update or insert
       const { data: existing } = await supabaseClient
-        .from('user_inventory').select('id, quantity')
-        .eq('user_id', currentUser.id).eq('item_id', itemId).maybeSingle();
+        .from('user_inventory')
+        .select('id, quantity')
+        .eq('user_id', currentUser.id)
+        .eq('item_id', itemId)
+        .limit(1);
 
-      if (existing) {
+      if (existing && existing.length > 0) {
         await supabaseClient.from('user_inventory')
-          .update({ quantity: existing.quantity + 1 }).eq('id', existing.id);
+          .update({ quantity: existing[0].quantity + 1 })
+          .eq('id', existing[0].id);
       } else {
-        await supabaseClient.from('user_inventory')
+        const { error: invError } = await supabaseClient.from('user_inventory')
           .insert([{ user_id: currentUser.id, item_id: itemId, quantity: 1 }]);
+        if (invError) { console.error('Inventory insert error:', invError.message); showToast('Item bought but inventory failed: ' + invError.message); return; }
       }
 
       currentPoints = newPoints;
