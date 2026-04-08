@@ -36,7 +36,6 @@ function injectShared(activePage) {
     {href:'shop.html', label:'🛍️ Shop', id:'shop'},
     {href:'minigames.html', label:'🎮 Minigames', id:'minigames'},
     {href:'news.html', label:'📰 News', id:'news'}
-    {href:'twitch.html', label:'🟣 Twitch', id:'twitch'}
   ];
   var linksHtml = pages.map(function(p){
     return '<a href="' + p.href + '"' + (p.id === activePage ? ' class="active"' : '') + '>' + p.label + '</a>';
