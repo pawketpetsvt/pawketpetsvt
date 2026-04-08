@@ -200,7 +200,7 @@
 
     async function loadMyPets() {
       var container = document.getElementById('pets-container');
-      var res = await supabaseClient.from('user_pets').select('*, pets(name, image_file, vtuber_name)').eq('user_id', currentUser.id).order('adopted_at', {ascending:true});
+      var res = await supabaseClient.from('user_pets').select('*, pets(name, image_file, vtuber_name, twitch_url)').eq('user_id', currentUser.id).order('adopted_at', {ascending:true});
       if (res.error) { container.innerHTML = '<p style="text-align:center;color:var(--text-light);">Could not load pets.</p>'; return; }
       if (!res.data || !res.data.length) {
         container.innerHTML = '<div class="empty-state"><div style="font-size:3.5rem;margin-bottom:16px;">🐾</div><h2 style="color:var(--purple-dark);margin-bottom:10px;">No pets yet!</h2><p style="color:var(--text-light);margin-bottom:20px;">Head to the adoption centre!</p><a href="adopt.html" class="btn btn-primary btn-lg">🐣 Adopt a Pet</a></div>';
