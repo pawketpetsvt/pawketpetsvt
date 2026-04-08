@@ -229,7 +229,7 @@
       return '<div class="my-pet-card" id="petcard-' + pet.id + '">' +
         '<div class="pet-card-header"><div class="pet-avatar">' + imgHtml + '</div>' +
         '<div class="pet-card-info"><div class="pet-card-nickname">' + pet.nickname + '</div>' +
-        '<div class="pet-card-species">' + (info.vtuber_name ? '🎭 ' + info.vtuber_name : '') + '</div>' +
+        '<div class="pet-card-species">' + (info.vtuber_name ? '🎭 ' + info.vtuber_name : '') + (info.twitch_url ? ' &nbsp;<a href="' + info.twitch_url + '" target="_blank" style="font-size:0.78rem;background:#9146ff;color:white;padding:2px 8px;border-radius:10px;font-family:Fredoka One,cursive;text-decoration:none;">Watch Live</a>' : '') + '</div>' +
         '<div class="pet-card-level">Lv. ' + pet.level + ' &nbsp;|&nbsp; Max: ' + pet.max_hunger + '</div></div></div>' +
         (pet.happiness <= 20 || pet.hunger <= 10 ? '<div class="sadness-warning">😢 Your pet needs attention!</div>' : '') +
         '<div class="stat-bars">' +
