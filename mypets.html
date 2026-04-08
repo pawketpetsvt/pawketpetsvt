@@ -19,15 +19,15 @@
     .pet-card-level { display: inline-block; background: linear-gradient(135deg, var(--purple), var(--pink)); color: var(--white); font-family: 'Fredoka One', cursive; font-size: 0.8rem; padding: 2px 10px; border-radius: 20px; margin-top: 4px; }
     .stat-bars { display: flex; flex-direction: column; gap: 8px; }
     .stat-row { display: flex; align-items: center; gap: 8px; }
-    .stat-label { font-size: 0.82rem; font-weight: 700; color: var(--text-light); width: 88px; flex-shrink: 0; }
+    .stat-label { font-size: 0.82rem; font-weight: 700; color: var(--text-light); width: 90px; flex-shrink: 0; }
     .stat-bar-wrap { flex: 1; height: 14px; background: var(--purple-light); border-radius: 10px; overflow: hidden; }
     .stat-bar-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
     .stat-bar-fill.hunger { background: linear-gradient(90deg, #ff9f43, #ffcc70); }
     .stat-bar-fill.happiness { background: linear-gradient(90deg, var(--pink), #ffb3d9); }
     .stat-bar-fill.energy { background: linear-gradient(90deg, var(--cyan), #a0f0ff); }
-    .stat-value { font-size: 0.8rem; font-weight: 700; color: var(--text-light); width: 40px; text-align: right; flex-shrink: 0; }
+    .stat-value { font-size: 0.8rem; font-weight: 700; color: var(--text-light); width: 44px; text-align: right; flex-shrink: 0; }
     .xp-row { display: flex; align-items: center; gap: 8px; }
-    .xp-label { font-size: 0.78rem; color: var(--text-light); font-weight: 700; width: 88px; flex-shrink: 0; }
+    .xp-label { font-size: 0.78rem; color: var(--text-light); font-weight: 700; width: 90px; flex-shrink: 0; }
     .xp-bar-wrap { flex: 1; height: 10px; background: var(--purple-light); border-radius: 10px; overflow: hidden; }
     .xp-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--purple), var(--pink)); transition: width 0.5s ease; }
     .xp-value { font-size: 0.78rem; color: var(--text-light); font-weight: 700; width: 60px; text-align: right; flex-shrink: 0; }
@@ -41,8 +41,8 @@
     .sadness-warning { background: #fff0f0; border: 2px solid #ffb3b3; border-radius: var(--radius); padding: 6px 12px; font-size: 0.82rem; color: #cc4444; font-weight: 700; text-align: center; }
     .use-item-section { border-top: 2px solid var(--border); padding-top: 12px; }
     .use-item-label { font-family: 'Fredoka One', cursive; font-size: 0.9rem; color: var(--purple-dark); margin-bottom: 8px; }
-    .use-item-row { display: flex; gap: 8px; align-items: stretch; }
-    .item-select { flex: 1; padding: 8px 12px; border: 2.5px solid var(--border); border-radius: var(--radius); font-family: 'Nunito', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--cream); outline: none; cursor: pointer; min-width: 0; }
+    .use-item-row { display: flex; gap: 8px; }
+    .item-select { flex: 1; padding: 8px 12px; border: 2.5px solid var(--border); border-radius: var(--radius); font-family: 'Nunito', sans-serif; font-size: 0.88rem; color: var(--text); background: var(--cream); outline: none; min-width: 0; }
     .item-select:focus { border-color: var(--purple); }
     .btn-use-item { font-family: 'Fredoka One', cursive; font-size: 0.88rem; padding: 8px 16px; border-radius: var(--radius); border: none; cursor: pointer; background: linear-gradient(135deg, var(--green), #3ab85a); color: var(--white); white-space: nowrap; transition: transform 0.15s, opacity 0.2s; flex-shrink: 0; }
     .btn-use-item:hover:not(:disabled) { transform: translateY(-2px); }
@@ -81,7 +81,7 @@
     </div>
   </div>
 
-  <footer class="footer"><div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div><p>© 2025 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p></footer>
+  <footer class="footer"><div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div><p>© 2026 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
@@ -91,7 +91,7 @@
     injectShared('mypets');
     var currentUser = null, currentPoints = 0;
     var petState = {};
-    var inventoryItems = []; // flat array: [{invId, itemId, name, qty, h, e, hap, xp}]
+    var inventoryItems = [];
 
     async function init() {
       var session = await requireLogin(); if (!session) return;
@@ -111,104 +111,63 @@
     }
 
     function updatePointsDisplay() {
-      var el = document.getElementById('points-display');
-      if (el) el.textContent = currentPoints + ' PP';
-      var nav = document.getElementById('nav-points');
-      if (nav) nav.textContent = '🪙 ' + currentPoints + ' PP';
+      var el = document.getElementById('points-display'); if (el) el.textContent = currentPoints + ' PP';
+      var nav = document.getElementById('nav-points'); if (nav) nav.textContent = '🪙 ' + currentPoints + ' PP';
     }
 
     function closeBonusModal() { document.getElementById('bonus-modal').classList.remove('show'); }
 
     async function loadInventory() {
       inventoryItems = [];
-      // Two separate queries to avoid join issues
-      var invRes = await supabaseClient
-        .from('user_inventory')
-        .select('id, item_id, quantity')
-        .eq('user_id', currentUser.id)
-        .gt('quantity', 0);
-
-      if (invRes.error || !invRes.data || invRes.data.length === 0) return;
-
-      // Get item details separately
+      var invRes = await supabaseClient.from('user_inventory').select('id, item_id, quantity').eq('user_id', currentUser.id).gt('quantity', 0);
+      if (invRes.error || !invRes.data || !invRes.data.length) return;
       var itemIds = invRes.data.map(function(r){ return r.item_id; });
-      var itemsRes = await supabaseClient
-        .from('items')
-        .select('id, name, hunger_effect, energy_effect, happiness_effect, xp_effect')
-        .in('id', itemIds);
-
-      if (itemsRes.error || !itemsRes.data) return;
-
-      // Build a map of item details
+      var itemsRes = await supabaseClient.from('items').select('id, name, hunger_effect, energy_effect, happiness_effect, xp_effect').in('id', itemIds);
       var itemMap = {};
-      itemsRes.data.forEach(function(item){ itemMap[item.id] = item; });
-
-      // Combine
+      if (itemsRes.data) itemsRes.data.forEach(function(i){ itemMap[i.id] = i; });
       invRes.data.forEach(function(row) {
         var item = itemMap[row.item_id] || {};
-        inventoryItems.push({
-          invId: row.id,
-          itemId: row.item_id,
-          name: item.name || 'Unknown Item',
-          qty: row.quantity,
-          h: item.hunger_effect || 0,
-          e: item.energy_effect || 0,
-          hap: item.happiness_effect || 0,
-          xp: item.xp_effect || 0
-        });
+        inventoryItems.push({ invId:row.id, itemId:row.item_id, name:item.name||'Item', qty:row.quantity, h:item.hunger_effect||0, e:item.energy_effect||0, hap:item.happiness_effect||0, xp:item.xp_effect||0 });
       });
     }
 
     function getEffectText(item) {
-      var parts = [];
-      if (item.h > 0) parts.push('+' + item.h + ' Hunger');
-      if (item.e > 0) parts.push('+' + item.e + ' Energy');
-      if (item.hap > 0) parts.push('+' + item.hap + ' Happiness');
-      if (item.xp > 0) parts.push('+' + item.xp + ' XP');
-      return parts.join('  ');
+      var p = [];
+      if (item.h > 0) p.push('+' + item.h + ' Hunger');
+      if (item.e > 0) p.push('+' + item.e + ' Energy');
+      if (item.hap > 0) p.push('+' + item.hap + ' Happiness');
+      if (item.xp > 0) p.push('+' + item.xp + ' XP');
+      return p.join('  ');
     }
 
     function buildDropdown(petId) {
-      if (inventoryItems.length === 0) {
-        return '<div class="use-item-section"><div class="use-item-label">🎒 Use an Item</div><p style="font-size:0.82rem;color:var(--text-light);">No items. <a href="shop.html">Visit the shop!</a></p></div>';
-      }
+      if (!inventoryItems.length) return '<div class="use-item-section"><div class="use-item-label">🎒 Use an Item</div><p style="font-size:0.82rem;color:var(--text-light);">No items. <a href="shop.html">Visit the shop!</a></p></div>';
       var opts = '<option value="">— Choose an item —</option>';
-      inventoryItems.forEach(function(item) {
-        opts += '<option value="' + item.invId + '">' + item.name + ' (x' + item.qty + ') — ' + getEffectText(item) + '</option>';
-      });
-      return '<div class="use-item-section">' +
-        '<div class="use-item-label">🎒 Use an Item</div>' +
-        '<div class="use-item-row">' +
-        '<select class="item-select" id="sel-' + petId + '" onchange="previewItem(\'' + petId + '\')">' + opts + '</select>' +
-        '<button class="btn-use-item" id="usebtn-' + petId + '" onclick="useItem(\'' + petId + '\')" disabled>✨ Use</button>' +
-        '</div>' +
-        '<div class="item-effect-preview" id="preview-' + petId + '"></div>' +
-        '</div>';
+      inventoryItems.forEach(function(item){ opts += '<option value="' + item.invId + '">' + item.name + ' (x' + item.qty + ') — ' + getEffectText(item) + '</option>'; });
+      return '<div class="use-item-section"><div class="use-item-label">🎒 Use an Item</div>' +
+        '<div class="use-item-row"><select class="item-select" id="sel-' + petId + '" onchange="previewItem(\'' + petId + '\')">' + opts + '</select>' +
+        '<button class="btn-use-item" id="usebtn-' + petId + '" onclick="useItem(\'' + petId + '\')" disabled>✨ Use</button></div>' +
+        '<div class="item-effect-preview" id="preview-' + petId + '"></div></div>';
     }
 
     function previewItem(petId) {
       var sel = document.getElementById('sel-' + petId);
       var preview = document.getElementById('preview-' + petId);
       var btn = document.getElementById('usebtn-' + petId);
-      if (!sel.value) { preview.textContent = ''; btn.disabled = true; return; }
+      if (!sel || !sel.value) { if (preview) preview.textContent = ''; if (btn) btn.disabled = true; return; }
       var item = inventoryItems.find(function(i){ return i.invId === sel.value; });
-      if (!item) { preview.textContent = ''; btn.disabled = true; return; }
-      var effectText = getEffectText(item);
-      preview.textContent = effectText ? '✨ Will give: ' + effectText : '✨ No effects';
+      if (!item) { if (preview) preview.textContent = ''; if (btn) btn.disabled = true; return; }
+      preview.textContent = '✨ Will give: ' + getEffectText(item);
       btn.disabled = false;
     }
 
     async function useItem(petId) {
       var sel = document.getElementById('sel-' + petId);
-      var invId = sel ? sel.value : '';
-      if (!invId) return;
-      var itemIdx = -1;
-      for (var i = 0; i < inventoryItems.length; i++) { if (inventoryItems[i].invId === invId) { itemIdx = i; break; } }
-      if (itemIdx === -1) return;
-      var item = inventoryItems[itemIdx];
-      var pet = petState[petId];
-      if (!pet) return;
-
+      if (!sel || !sel.value) return;
+      var idx = inventoryItems.findIndex(function(i){ return i.invId === sel.value; });
+      if (idx === -1) return;
+      var item = inventoryItems[idx];
+      var pet = petState[petId]; if (!pet) return;
       var btn = document.getElementById('usebtn-' + petId);
       btn.disabled = true; btn.textContent = '...';
 
@@ -218,38 +177,24 @@
       if (item.hap > 0) updates.happiness = Math.min(pet.happiness + item.hap, pet.max_happiness);
       if (item.xp > 0) updates.xp = pet.xp + item.xp;
 
-      if (Object.keys(updates).length === 0) {
-        showToast('This item has no effects configured yet.');
-        btn.disabled = false; btn.textContent = '✨ Use'; return;
-      }
+      if (!Object.keys(updates).length) { showToast('This item has no effects yet.'); btn.disabled = false; btn.textContent = '✨ Use'; return; }
 
       var res = await supabaseClient.from('user_pets').update(updates).eq('id', petId);
       if (res.error) { showToast('Error: ' + res.error.message); btn.disabled = false; btn.textContent = '✨ Use'; return; }
 
-      // Update inventory in DB
-      if (item.qty <= 1) {
-        await supabaseClient.from('user_inventory').delete().eq('id', invId);
-        inventoryItems.splice(itemIdx, 1);
-      } else {
-        await supabaseClient.from('user_inventory').update({quantity: item.qty - 1}).eq('id', invId);
-        inventoryItems[itemIdx].qty = item.qty - 1;
-      }
+      if (item.qty <= 1) { await supabaseClient.from('user_inventory').delete().eq('id', item.invId); inventoryItems.splice(idx, 1); }
+      else { await supabaseClient.from('user_inventory').update({quantity: item.qty - 1}).eq('id', item.invId); inventoryItems[idx].qty = item.qty - 1; }
 
-      // Update petState
-      if (updates.hunger !== undefined) { petState[petId].hunger = updates.hunger; updateBar(petId, 'hunger', updates.hunger, pet.max_hunger); }
-      if (updates.energy !== undefined) { petState[petId].energy = updates.energy; updateBar(petId, 'energy', updates.energy, pet.max_energy); }
-      if (updates.happiness !== undefined) { petState[petId].happiness = updates.happiness; updateBar(petId, 'happiness', updates.happiness, pet.max_happiness); }
+      if (updates.hunger !== undefined) { petState[petId].hunger = updates.hunger; updateBar(petId,'hunger',updates.hunger,pet.max_hunger); }
+      if (updates.energy !== undefined) { petState[petId].energy = updates.energy; updateBar(petId,'energy',updates.energy,pet.max_energy); }
+      if (updates.happiness !== undefined) { petState[petId].happiness = updates.happiness; updateBar(petId,'happiness',updates.happiness,pet.max_happiness); }
       if (updates.xp !== undefined) { petState[petId].xp = updates.xp; updateXpBar(petId, updates.xp, pet.level); }
 
       showFlash(petId, '✨ ' + item.name + ': ' + getEffectText(item), '#b06aff');
       showToast('Used ' + item.name + ' on ' + pet.nickname + '!');
 
-      // Refresh dropdown
       var card = document.getElementById('petcard-' + petId);
-      if (card) {
-        var old = card.querySelector('.use-item-section');
-        if (old) { var d = document.createElement('div'); d.innerHTML = buildDropdown(petId); old.replaceWith(d.firstElementChild); }
-      }
+      if (card) { var old = card.querySelector('.use-item-section'); if (old) { var d = document.createElement('div'); d.innerHTML = buildDropdown(petId); old.replaceWith(d.firstElementChild); } }
       btn.disabled = false; btn.textContent = '✨ Use';
     }
 
@@ -257,13 +202,14 @@
       var container = document.getElementById('pets-container');
       var res = await supabaseClient.from('user_pets').select('*, pets(name, image_file, vtuber_name)').eq('user_id', currentUser.id).order('adopted_at', {ascending:true});
       if (res.error) { container.innerHTML = '<p style="text-align:center;color:var(--text-light);">Could not load pets.</p>'; return; }
-      if (!res.data || res.data.length === 0) {
+      if (!res.data || !res.data.length) {
         container.innerHTML = '<div class="empty-state"><div style="font-size:3.5rem;margin-bottom:16px;">🐾</div><h2 style="color:var(--purple-dark);margin-bottom:10px;">No pets yet!</h2><p style="color:var(--text-light);margin-bottom:20px;">Head to the adoption centre!</p><a href="adopt.html" class="btn btn-primary btn-lg">🐣 Adopt a Pet</a></div>';
         return;
       }
       res.data.forEach(function(pet) {
         petState[pet.id] = Object.assign({}, pet, {
           energy: calculateEnergyRegen(pet.energy, pet.max_energy, pet.last_played),
+          hunger: calculateHungerDecay(pet.hunger, pet.last_fed),
           happiness: calculateHappinessDecay(pet.happiness, pet.last_fed, pet.last_played)
         });
       });
@@ -281,11 +227,11 @@
       var canPlay = pet.energy >= 10;
       var imgHtml = info.image_file ? '<img src="images/' + info.image_file + '" alt="' + pet.nickname + '" onerror="this.parentElement.innerHTML=\'🐾\'">' : '🐾';
       return '<div class="my-pet-card" id="petcard-' + pet.id + '">' +
-        '<div class="pet-card-header"><div class="pet-avatar">' + imgHtml + '</div><div class="pet-card-info">' +
-        '<div class="pet-card-nickname">' + pet.nickname + '</div>' +
+        '<div class="pet-card-header"><div class="pet-avatar">' + imgHtml + '</div>' +
+        '<div class="pet-card-info"><div class="pet-card-nickname">' + pet.nickname + '</div>' +
         '<div class="pet-card-species">' + (info.vtuber_name ? '🎭 ' + info.vtuber_name : '') + '</div>' +
-        '<div class="pet-card-level">Lv. ' + pet.level + '</div></div></div>' +
-        (pet.happiness <= 20 ? '<div class="sadness-warning">😢 Your pet needs attention!</div>' : '') +
+        '<div class="pet-card-level">Lv. ' + pet.level + ' &nbsp;|&nbsp; Max: ' + pet.max_hunger + '</div></div></div>' +
+        (pet.happiness <= 20 || pet.hunger <= 10 ? '<div class="sadness-warning">😢 Your pet needs attention!</div>' : '') +
         '<div class="stat-bars">' +
         statRow('hunger', pet.id, pet.hunger, pet.max_hunger, hungerPct, '🍖 Hunger') +
         statRow('happiness', pet.id, pet.happiness, pet.max_happiness, happPct, '💖 Happiness') +
@@ -309,14 +255,17 @@
       var btn = document.getElementById('feed-' + petId); btn.disabled = true; btn.textContent = '...';
       var nh = Math.min(pet.hunger + 20, pet.max_hunger);
       var nhap = Math.min(pet.happiness + 5, pet.max_happiness);
-      var nxp = pet.xp + 10; var xpNext = pet.level * 100; var nl = pet.level; var fx = nxp;
-      if (nxp >= xpNext) { nl = pet.level + 1; fx = nxp - xpNext; showFlash(petId, '🎉 Level up! Lv.' + nl + '!', '#b06aff'); }
-      else { showFlash(petId, '+20 Hunger  +5 Happiness  +10 XP', '#5dde7a'); }
-      var res = await supabaseClient.from('user_pets').update({hunger:nh, happiness:nhap, xp:fx, level:nl, last_fed:new Date().toISOString()}).eq('id', petId);
+      var nxp = pet.xp + 10;
+      var lu = calculateLevelUp(nxp, pet.level, pet.max_hunger, pet.max_energy, pet.max_happiness);
+      var updates = { hunger:nh, happiness:nhap, xp:lu.xp, level:lu.level, last_fed:new Date().toISOString() };
+      if (lu.leveled) { updates.max_hunger = lu.maxHunger; updates.max_energy = lu.maxEnergy; updates.max_happiness = lu.maxHappiness; }
+      var res = await supabaseClient.from('user_pets').update(updates).eq('id', petId);
       if (res.error) { showFlash(petId, 'Error!', '#ff6eb4'); btn.disabled = false; btn.textContent = '🍖 Feed'; return; }
-      petState[petId].hunger = nh; petState[petId].happiness = nhap; petState[petId].xp = fx; petState[petId].level = nl;
-      updateBar(petId,'hunger',nh,pet.max_hunger); updateBar(petId,'happiness',nhap,pet.max_happiness); updateXpBar(petId,fx,nl);
-      if (nh >= pet.max_hunger) { btn.textContent = '🍖 Full!'; } else { btn.disabled = false; btn.textContent = '🍖 Feed'; }
+      Object.assign(petState[petId], updates);
+      updateBar(petId,'hunger',nh,lu.maxHunger); updateBar(petId,'happiness',nhap,lu.maxHappiness); updateXpBar(petId,lu.xp,lu.level);
+      if (lu.leveled) { showFlash(petId, '🎉 Level ' + lu.level + '! Max stats +5!', '#b06aff'); updateLevelDisplay(petId, lu.level, lu.maxHunger); }
+      else { showFlash(petId, '+20 Hunger  +5 Happiness  +10 XP', '#5dde7a'); }
+      if (nh >= lu.maxHunger) { btn.textContent = '🍖 Full!'; } else { btn.disabled = false; btn.textContent = '🍖 Feed'; }
     }
 
     async function play(petId) {
@@ -324,31 +273,44 @@
       var btn = document.getElementById('play-' + petId); btn.disabled = true; btn.textContent = '...';
       var ne = Math.max(pet.energy - 10, 0);
       var nhap = Math.min(pet.happiness + 15, pet.max_happiness);
-      var nxp = pet.xp + 15; var xpNext = pet.level * 100; var nl = pet.level; var fx = nxp;
-      if (nxp >= xpNext) { nl = pet.level + 1; fx = nxp - xpNext; showFlash(petId, '🎉 Level up! Lv.' + nl + '!', '#b06aff'); }
-      else { showFlash(petId, '-10 Energy  +15 Happiness  +15 XP', '#5dde7a'); }
-      var res = await supabaseClient.from('user_pets').update({energy:ne, happiness:nhap, xp:fx, level:nl, last_played:new Date().toISOString()}).eq('id', petId);
+      var nxp = pet.xp + 15;
+      var lu = calculateLevelUp(nxp, pet.level, pet.max_hunger, pet.max_energy, pet.max_happiness);
+      var updates = { energy:ne, happiness:nhap, xp:lu.xp, level:lu.level, last_played:new Date().toISOString() };
+      if (lu.leveled) { updates.max_hunger = lu.maxHunger; updates.max_energy = lu.maxEnergy; updates.max_happiness = lu.maxHappiness; }
+      var res = await supabaseClient.from('user_pets').update(updates).eq('id', petId);
       if (res.error) { showFlash(petId, 'Error!', '#ff6eb4'); btn.disabled = false; btn.textContent = '🎾 Play'; return; }
-      petState[petId].energy = ne; petState[petId].happiness = nhap; petState[petId].xp = fx; petState[petId].level = nl;
-      updateBar(petId,'energy',ne,pet.max_energy); updateBar(petId,'happiness',nhap,pet.max_happiness); updateXpBar(petId,fx,nl);
+      Object.assign(petState[petId], updates);
+      updateBar(petId,'energy',ne,lu.maxEnergy); updateBar(petId,'happiness',nhap,lu.maxHappiness); updateXpBar(petId,lu.xp,lu.level);
+      if (lu.leveled) { showFlash(petId, '🎉 Level ' + lu.level + '! Max stats +5!', '#b06aff'); updateLevelDisplay(petId, lu.level, lu.maxHunger); }
+      else { showFlash(petId, '-10 Energy  +15 Happiness  +15 XP', '#5dde7a'); }
       if (ne < 10) { btn.textContent = '⚡ Tired!'; } else { btn.disabled = false; btn.textContent = '🎾 Play'; }
     }
 
+    function updateLevelDisplay(petId, level, maxHunger) {
+      var card = document.getElementById('petcard-' + petId);
+      if (!card) return;
+      var lvl = card.querySelector('.pet-card-level');
+      if (lvl) lvl.textContent = 'Lv. ' + level + ' | Max: ' + maxHunger;
+    }
+
     function updateBar(petId, stat, val, max) {
-      var pct = Math.round(val/max*100);
-      var bar = document.getElementById(stat+'-bar-'+petId); if (bar) bar.style.width = pct + '%';
+      var pct = Math.round(val / max * 100);
+      var bar = document.getElementById(stat+'-bar-'+petId); if (bar) bar.style.width = pct+'%';
       var v = document.getElementById(stat+'-val-'+petId); if (v) v.textContent = val+'/'+max;
     }
+
     function updateXpBar(petId, xp, level) {
-      var next = level*100; var pct = Math.min(xp/next*100,100);
+      var next = level*100; var pct = Math.min(xp/next*100, 100);
       var bar = document.getElementById('xp-bar-'+petId); if (bar) bar.style.width = pct+'%';
       var v = document.getElementById('xp-val-'+petId); if (v) v.textContent = xp+'/'+next;
     }
+
     function showFlash(petId, msg, color) {
       var el = document.getElementById('flash-'+petId); if (!el) return;
       el.textContent = msg; el.style.color = color||'var(--green)'; el.style.opacity = '1';
-      setTimeout(function(){ el.style.opacity = '0'; }, 2500);
+      setTimeout(function(){ el.style.opacity = '0'; }, 3000);
     }
+
     init();
   </script>
 </body>
