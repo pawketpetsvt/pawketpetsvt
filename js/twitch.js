@@ -4,13 +4,13 @@
 // ══════════════════════════════════════════════════
 // CONFIGURATION — Fill these in after setup!
 // ══════════════════════════════════════════════════
-var TWITCH_CLIENT_ID = 'PASTE_YOUR_TWITCH_CLIENT_ID_HERE';
+var TWITCH_CLIENT_ID = 'moqd3war5e7fleif8yte1d8n6kl25u';
 var TWITCH_REDIRECT_URI = 'https://pawketpetsvt.github.io/twitch.html';
 
 // Twitch user IDs for your streamers (find these at https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/)
 var STREAMER_IDS = {
-  embertail: 'EMBERTAIL_TWITCH_USER_ID',
-  pyxshuul:  'PYXSHUUL_TWITCH_USER_ID'
+  embertail: '91821604',
+  pyxshuul:  '1459912293'
 };
 
 // PP reward for following each streamer (one time only)
