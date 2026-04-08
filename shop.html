@@ -8,8 +8,8 @@
   <link rel="stylesheet" href="css/style.css" />
   <style>
     .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 24px; }
-    .shop-card { background: var(--white); border: 2.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; text-align: center; box-shadow: 0 4px 16px var(--shadow); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; gap: 10px; align-items: center; }
-    .shop-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px var(--shadow); }
+    .shop-card { background: var(--white); border: 2.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; text-align: center; box-shadow: 0 4px 16px var(--shadow); transition: transform 0.2s; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+    .shop-card:hover { transform: translateY(-4px); }
     .shop-item-icon { width: 90px; height: 90px; border-radius: var(--radius); background: var(--purple-light); display: flex; align-items: center; justify-content: center; font-size: 2.8rem; overflow: hidden; }
     .shop-item-icon img { width: 100%; height: 100%; object-fit: cover; }
     .shop-item-name { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--purple-dark); }
@@ -20,22 +20,15 @@
     .btn-buy { width: 100%; font-family: 'Fredoka One', cursive; font-size: 0.95rem; padding: 9px; border-radius: 24px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--purple), var(--pink)); color: var(--white); transition: transform 0.15s, opacity 0.2s; }
     .btn-buy:hover:not(:disabled) { transform: translateY(-2px); }
     .btn-buy:disabled { opacity: 0.4; cursor: not-allowed; }
-    .points-banner { background: linear-gradient(135deg, var(--purple-light), var(--pink-light)); border: 2.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 10px; }
-    .points-banner .pb-label { font-family: 'Fredoka One', cursive; font-size: 1rem; color: var(--purple-dark); }
-    .points-banner .pb-amount { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: var(--purple); background: var(--white); padding: 4px 16px; border-radius: 20px; box-shadow: 0 2px 8px var(--shadow); }
-    .shop-tabs { display: flex; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+    .shop-tabs { display: flex; gap: 8px; margin-bottom: 4px; }
     .shop-tab { font-family: 'Fredoka One', cursive; font-size: 0.95rem; padding: 8px 20px; border-radius: 24px; border: 2.5px solid var(--border); background: var(--white); color: var(--text-light); cursor: pointer; transition: all 0.2s; }
     .shop-tab.active { background: linear-gradient(135deg, var(--purple), var(--pink)); color: var(--white); border-color: transparent; }
-    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--purple-dark); color: var(--white); font-family: 'Fredoka One', cursive; font-size: 1rem; padding: 12px 28px; border-radius: 30px; box-shadow: 0 8px 24px var(--shadow); z-index: 300; transition: transform 0.3s ease; pointer-events: none; }
-    .toast.show { transform: translateX(-50%) translateY(0); }
     .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-top: 20px; }
     .inv-card { background: var(--white); border: 2.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; text-align: center; box-shadow: 0 4px 12px var(--shadow); display: flex; flex-direction: column; gap: 8px; align-items: center; }
     .inv-icon { width: 60px; height: 60px; border-radius: var(--radius); background: var(--purple-light); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; }
     .inv-icon img { width: 100%; height: 100%; object-fit: cover; }
     .inv-name { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--purple-dark); }
     .inv-qty { font-size: 0.8rem; font-weight: 700; color: var(--text-light); }
-    .btn-use { width: 100%; font-family: 'Fredoka One', cursive; font-size: 0.85rem; padding: 7px; border-radius: 20px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--green), #3ab85a); color: var(--white); transition: transform 0.15s; }
-    .btn-use:hover { transform: translateY(-2px); }
     .use-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(60,20,100,0.5); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; }
     .use-modal-overlay.show { display: flex; }
     .use-modal { background: var(--white); border: 2.5px solid var(--border); border-radius: var(--radius-lg); padding: 32px; max-width: 380px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(60,20,100,0.3); animation: modal-pop 0.2s ease-out; }
@@ -48,291 +41,190 @@
   </style>
 </head>
 <body>
-
-  <nav class="navbar">
-    <div class="navbar-inner">
-      <a href="index.html" class="navbar-logo">🐾 <span>Pawket</span>PetsVT</a>
-      <div class="navbar-links">
-        <a href="index.html">🏠 Home</a>
-        <a href="adopt.html">🐣 Adopt</a>
-        <a href="mypets.html">💖 My Pets</a>
-        <a href="shop.html" class="active">🛍️ Shop</a>
-        <a href="minigames.html">🎮 Minigames</a>
-        <a href="news.html">📰 News</a>
-      </div>
-      <div class="navbar-user">
-        <span id="nav-user"></span>
-        <span id="nav-points" style="display:none"></span>
-        <a href="login.html" id="nav-login" class="btn-nav-login">Login</a>
-        <button onclick="logoutUser()" id="nav-logout" class="btn-nav-logout" style="display:none">Logout</button>
-      </div>
-    </div>
-  </nav>
-
   <div class="page-wrap">
     <div class="page-hero">
       <div class="sparkle-row">🛍️ ✦ 🛍️</div>
       <h1>The PawketShop</h1>
-      <p>Spend your PawketPoints on treats, toys, and goodies for your pets! 🪙</p>
+      <p>Spend your PawketPoints on treats, toys, and goodies! 🪙</p>
     </div>
-
     <div class="points-banner">
       <span class="pb-label">🪙 Your PawketPoints</span>
       <span class="pb-amount" id="points-display">0 PP</span>
     </div>
-
     <div class="shop-tabs">
-      <button class="shop-tab active" id="tab-btn-shop" onclick="showTab('shop')">🛍️ Shop</button>
-      <button class="shop-tab" id="tab-btn-inventory" onclick="showTab('inventory')">🎒 My Inventory</button>
+      <button class="shop-tab active" id="tab-shop-btn" onclick="showTab('shop')">🛍️ Shop</button>
+      <button class="shop-tab" id="tab-inv-btn" onclick="showTab('inventory')">🎒 My Inventory</button>
     </div>
-
-    <div id="tab-shop">
-      <div id="shop-grid" class="shop-grid"><div class="spinner"></div></div>
-    </div>
-    <div id="tab-inventory" style="display:none">
-      <div id="inventory-grid" class="inventory-grid"><div class="spinner"></div></div>
-    </div>
+    <div id="tab-shop"><div id="shop-grid" class="shop-grid"><div class="spinner"></div></div></div>
+    <div id="tab-inventory" style="display:none"><div id="inventory-grid" class="inventory-grid"><div class="spinner"></div></div></div>
   </div>
 
-  <!-- Use item modal -->
   <div class="use-modal-overlay" id="use-modal">
     <div class="use-modal">
       <h2 id="use-modal-title">Use item</h2>
-      <p id="use-modal-desc">Which pet would you like to use this on?</p>
+      <p id="use-modal-desc">Which pet?</p>
       <div class="pet-select-list" id="pet-select-list"></div>
       <button class="btn btn-outline" onclick="closeUseModal()">Cancel</button>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <footer class="footer">
-    <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
-    <p>© 2024 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p>
-  </footer>
+  <footer class="footer"><div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div><p>© 2025 PawketPetsVT &nbsp;|&nbsp; Made with 💖</p></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/shared.js"></script>
   <script>
-    let currentUser = null;
-    let currentPoints = 0;
-    let myPets = [];
-    let selectedInventoryItem = null;
+    injectShared('shop');
+    var currentUser = null, currentPoints = 0, myPets = [], selectedInvItem = null;
 
     async function init() {
-      const session = await requireLogin();
-      if (!session) return;
-      await updateNav();
-      document.getElementById('nav-points').style.display = 'inline-block';
-      currentUser = session.user;
-
-      const { data: playerData } = await supabaseClient
-        .from('players').select('pawketpoints').eq('id', currentUser.id).single();
-      if (playerData) { currentPoints = playerData.pawketpoints; updatePointsDisplay(); }
-
-      const { data: petsData } = await supabaseClient
-        .from('user_pets').select('id, nickname').eq('user_id', currentUser.id);
-      if (petsData) myPets = petsData;
-
+      var session = await requireLogin(); if (!session) return;
+      await updateNav(); currentUser = session.user;
+      var pr = await supabaseClient.from('players').select('pawketpoints').eq('id', currentUser.id).single();
+      if (pr.data) { currentPoints = pr.data.pawketpoints; updatePointsDisplay(); }
+      var pets = await supabaseClient.from('user_pets').select('id, nickname').eq('user_id', currentUser.id);
+      if (pets.data) myPets = pets.data;
       await loadShop();
       await loadInventory();
     }
 
     function updatePointsDisplay() {
-      const el = document.getElementById('points-display');
-      if (el) el.textContent = currentPoints + ' PP';
-      const navEl = document.getElementById('nav-points');
-      if (navEl) navEl.textContent = '🪙 ' + currentPoints + ' PP';
+      var el = document.getElementById('points-display'); if (el) el.textContent = currentPoints + ' PP';
+      var nav = document.getElementById('nav-points'); if (nav) nav.textContent = '🪙 ' + currentPoints + ' PP';
     }
 
     function showTab(tab) {
       document.getElementById('tab-shop').style.display = tab === 'shop' ? 'block' : 'none';
       document.getElementById('tab-inventory').style.display = tab === 'inventory' ? 'block' : 'none';
-      document.getElementById('tab-btn-shop').classList.toggle('active', tab === 'shop');
-      document.getElementById('tab-btn-inventory').classList.toggle('active', tab === 'inventory');
+      document.getElementById('tab-shop-btn').classList.toggle('active', tab === 'shop');
+      document.getElementById('tab-inv-btn').classList.toggle('active', tab === 'inventory');
     }
 
-    function getItemEmoji(itemType) {
-      const map = { 'food': '🍖', 'toy': '🎾', 'potion': '✨', 'special': '🌟' };
-      return map[itemType] || '🎁';
-    }
+    function emoji(type) { return {food:'🍖',toy:'🎾',potion:'✨',special:'🌟'}[type] || '🎁'; }
 
-    function buildEffectTags(item) {
-      const tags = [];
-      if (item.hunger_effect && item.hunger_effect > 0) tags.push('<span class="effect-tag">🍖 +' + item.hunger_effect + ' Hunger</span>');
-      if (item.energy_effect && item.energy_effect > 0) tags.push('<span class="effect-tag">⚡ +' + item.energy_effect + ' Energy</span>');
-      if (item.happiness_effect && item.happiness_effect > 0) tags.push('<span class="effect-tag">💖 +' + item.happiness_effect + ' Happiness</span>');
-      if (item.xp_effect && item.xp_effect > 0) tags.push('<span class="effect-tag">✨ +' + item.xp_effect + ' XP</span>');
-      return tags.length > 0 ? '<div class="shop-effects">' + tags.join('') + '</div>' : '';
+    function effectTags(item) {
+      var tags = [];
+      if (item.hunger_effect > 0) tags.push('<span class="effect-tag">🍖 +' + item.hunger_effect + ' Hunger</span>');
+      if (item.energy_effect > 0) tags.push('<span class="effect-tag">⚡ +' + item.energy_effect + ' Energy</span>');
+      if (item.happiness_effect > 0) tags.push('<span class="effect-tag">💖 +' + item.happiness_effect + ' Happiness</span>');
+      if (item.xp_effect > 0) tags.push('<span class="effect-tag">✨ +' + item.xp_effect + ' XP</span>');
+      return tags.length ? '<div class="shop-effects">' + tags.join('') + '</div>' : '';
     }
 
     async function loadShop() {
-      const grid = document.getElementById('shop-grid');
-      const { data: items, error } = await supabaseClient
-        .from('items').select('*').order('price', { ascending: true });
+      var grid = document.getElementById('shop-grid');
+      var res = await supabaseClient.from('items').select('*').order('price', {ascending:true});
+      if (res.error || !res.data || !res.data.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light)">No items yet! Check back soon.</div>'; return; }
 
-      if (error || !items || items.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light)">No items in stock yet! Check back soon. ✨</div>';
-        return;
-      }
+      // Deduplicate by name — keep lowest price version
+      var seen = {}, deduped = [];
+      res.data.forEach(function(item) {
+        var key = item.name.toLowerCase().trim();
+        if (!seen[key] || item.price < seen[key].price) { seen[key] = item; }
+      });
+      Object.values(seen).forEach(function(item) { deduped.push(item); });
+      deduped.sort(function(a,b){ return a.price - b.price; });
 
-      grid.innerHTML = items.map(item => {
-        const emoji = getItemEmoji(item.item_type);
-        const canAfford = currentPoints >= item.price;
-        const imageHtml = item.image_url
-          ? '<img src="' + item.image_url + '" alt="' + item.name + '" onerror="this.parentElement.innerHTML=\'' + emoji + '\'">'
-          : emoji;
-
-        return `
-          <div class="shop-card">
-            <div class="shop-item-icon">${imageHtml}</div>
-            <div class="shop-item-name">${item.name}</div>
-            <div class="shop-item-desc">${item.description || ''}</div>
-            ${buildEffectTags(item)}
-            <div class="shop-item-price">🪙 ${item.price} PP</div>
-            <button class="btn-buy"
-              onclick="buyItem('${item.id}', '${item.name.replace(/'/g, "\\'")}'  , ${item.price})"
-              ${!canAfford ? 'disabled' : ''}>
-              ${canAfford ? '🛍️ Buy' : 'Need ' + item.price + ' PP'}
-            </button>
-          </div>`;
+      grid.innerHTML = deduped.map(function(item) {
+        var em = emoji(item.item_type);
+        var canAfford = currentPoints >= item.price;
+        var imgHtml = item.image_url ? '<img src="' + item.image_url + '" alt="' + item.name + '" onerror="this.parentElement.innerHTML=\'' + em + '\'">' : em;
+        return '<div class="shop-card">' +
+          '<div class="shop-item-icon">' + imgHtml + '</div>' +
+          '<div class="shop-item-name">' + item.name + '</div>' +
+          '<div class="shop-item-desc">' + (item.description || '') + '</div>' +
+          effectTags(item) +
+          '<div class="shop-item-price">🪙 ' + item.price + ' PP</div>' +
+          '<button class="btn-buy" onclick="buy(\'' + item.id + '\',\'' + item.name.replace(/'/g,"\\'") + '\',' + item.price + ')" ' + (!canAfford ? 'disabled' : '') + '>' +
+          (canAfford ? '🛍️ Buy' : 'Need ' + item.price + ' PP') + '</button></div>';
       }).join('');
     }
 
-    async function buyItem(itemId, itemName, price) {
+    async function buy(itemId, itemName, price) {
       if (currentPoints < price) return;
-      const newPoints = currentPoints - price;
+      var np = currentPoints - price;
+      var res1 = await supabaseClient.from('players').update({pawketpoints:np}).eq('id', currentUser.id);
+      if (res1.error) { showToast('Error deducting points.'); return; }
 
-      const { error: pointsError } = await supabaseClient
-        .from('players').update({ pawketpoints: newPoints }).eq('id', currentUser.id);
-      if (pointsError) { showToast('Something went wrong! Try again.'); return; }
-
-      // Check if already in inventory then update or insert
-      const { data: existing } = await supabaseClient
-        .from('user_inventory')
-        .select('id, quantity')
-        .eq('user_id', currentUser.id)
-        .eq('item_id', itemId)
-        .limit(1);
-
-      if (existing && existing.length > 0) {
-        await supabaseClient.from('user_inventory')
-          .update({ quantity: existing[0].quantity + 1 })
-          .eq('id', existing[0].id);
+      var existing = await supabaseClient.from('user_inventory').select('id, quantity').eq('user_id', currentUser.id).eq('item_id', itemId).limit(1);
+      if (existing.data && existing.data.length > 0) {
+        await supabaseClient.from('user_inventory').update({quantity: existing.data[0].quantity + 1}).eq('id', existing.data[0].id);
       } else {
-        const { error: invError } = await supabaseClient.from('user_inventory')
-          .insert([{ user_id: currentUser.id, item_id: itemId, quantity: 1 }]);
-        if (invError) { console.error('Inventory insert error:', invError.message); showToast('Item bought but inventory failed: ' + invError.message); return; }
+        var ins = await supabaseClient.from('user_inventory').insert([{user_id:currentUser.id, item_id:itemId, quantity:1}]);
+        if (ins.error) { showToast('Bought but inventory failed: ' + ins.error.message); return; }
       }
-
-      currentPoints = newPoints;
-      updatePointsDisplay();
+      currentPoints = np; updatePointsDisplay();
       showToast('✨ Bought ' + itemName + '! Check your inventory.');
-      await loadShop();
-      await loadInventory();
+      await loadShop(); await loadInventory();
     }
 
     async function loadInventory() {
-      const grid = document.getElementById('inventory-grid');
-      const { data: inv, error } = await supabaseClient
-        .from('user_inventory')
-        .select('*, items(name, description, item_type, hunger_effect, energy_effect, happiness_effect, xp_effect, image_url)')
-        .eq('user_id', currentUser.id)
-        .gt('quantity', 0);
-
-      if (error || !inv || inv.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light)">Your inventory is empty! Buy some items from the shop. 🛍️</div>';
-        return;
-      }
-
-      grid.innerHTML = inv.map(invItem => {
-        const item = invItem.items || {};
-        const emoji = getItemEmoji(item.item_type);
-        const imageHtml = item.image_url
-          ? '<img src="' + item.image_url + '" alt="' + (item.name||'') + '" onerror="this.parentElement.innerHTML=\'' + emoji + '\'" style="width:100%;height:100%;object-fit:cover;">'
-          : emoji;
-
-        return `
-          <div class="inv-card">
-            <div class="inv-icon">${imageHtml}</div>
-            <div class="inv-name">${item.name || 'Unknown Item'}</div>
-            <div class="inv-qty">x${invItem.quantity}</div>
-            <button class="btn-use" onclick="openUseModal('${invItem.id}', '${(item.name||'').replace(/'/g,"\\'")}', ${item.hunger_effect||0}, ${item.energy_effect||0}, ${item.happiness_effect||0}, ${item.xp_effect||0})">
-              ✨ Use
-            </button>
-          </div>`;
+      var grid = document.getElementById('inventory-grid');
+      var invRes = await supabaseClient.from('user_inventory').select('id, item_id, quantity').eq('user_id', currentUser.id).gt('quantity', 0);
+      if (invRes.error || !invRes.data || !invRes.data.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light)">Inventory empty! Buy items from the shop. 🛍️</div>'; return; }
+      var itemIds = invRes.data.map(function(r){return r.item_id;});
+      var itemsRes = await supabaseClient.from('items').select('id, name, item_type, image_url').in('id', itemIds);
+      var itemMap = {};
+      if (itemsRes.data) itemsRes.data.forEach(function(i){ itemMap[i.id] = i; });
+      grid.innerHTML = invRes.data.map(function(row) {
+        var item = itemMap[row.item_id] || {};
+        var em = emoji(item.item_type);
+        var imgHtml = item.image_url ? '<img src="' + item.image_url + '" alt="' + (item.name||'') + '" onerror="this.parentElement.innerHTML=\'' + em + '\'" style="width:100%;height:100%;object-fit:cover;">' : em;
+        return '<div class="inv-card"><div class="inv-icon">' + imgHtml + '</div>' +
+          '<div class="inv-name">' + (item.name||'Item') + '</div>' +
+          '<div class="inv-qty">x' + row.quantity + '</div>' +
+          '<button class="btn btn-sm btn-primary" onclick="openUseModal(\'' + row.id + '\',\'' + (item.name||'').replace(/'/g,"\\'") + '\')">✨ Use</button></div>';
       }).join('');
     }
 
-    function openUseModal(invId, itemName, hungerEffect, energyEffect, happinessEffect, xpEffect) {
-      selectedInventoryItem = { invId, itemName, hungerEffect, energyEffect, happinessEffect, xpEffect };
+    function openUseModal(invId, itemName) {
+      selectedInvItem = { invId: invId, itemName: itemName };
       document.getElementById('use-modal-title').textContent = 'Use ' + itemName;
       document.getElementById('use-modal-desc').textContent = 'Which pet would you like to give this to?';
-
-      const list = document.getElementById('pet-select-list');
-      if (!myPets || myPets.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-light);text-align:center;">You have no pets! Adopt one first.</p>';
-      } else {
-        list.innerHTML = myPets.map(pet =>
-          '<button class="pet-select-btn" onclick="useItemOnPet(\'' + pet.id + '\', \'' + pet.nickname.replace(/'/g,"\\'") + '\')">🐾 ' + pet.nickname + '</button>'
-        ).join('');
-      }
+      var list = document.getElementById('pet-select-list');
+      if (!myPets.length) { list.innerHTML = '<p style="color:var(--text-light)">No pets yet! <a href="adopt.html">Adopt one</a>.</p>'; }
+      else { list.innerHTML = myPets.map(function(p){ return '<button class="pet-select-btn" onclick="useOnPet(\'' + p.id + '\',\'' + p.nickname.replace(/'/g,"\\'") + '\')">🐾 ' + p.nickname + '</button>'; }).join(''); }
       document.getElementById('use-modal').classList.add('show');
     }
 
-    function closeUseModal() {
-      document.getElementById('use-modal').classList.remove('show');
-      selectedInventoryItem = null;
-    }
+    function closeUseModal() { document.getElementById('use-modal').classList.remove('show'); selectedInvItem = null; }
 
-    async function useItemOnPet(petId, petNickname) {
-      if (!selectedInventoryItem) return;
-      const { invId, itemName, hungerEffect, energyEffect, happinessEffect, xpEffect } = selectedInventoryItem;
+    async function useOnPet(petId, petNickname) {
+      if (!selectedInvItem) return;
+      var invId = selectedInvItem.invId; var itemName = selectedInvItem.itemName;
       closeUseModal();
 
-      // Get current pet stats
-      const { data: pet } = await supabaseClient
-        .from('user_pets')
-        .select('hunger, max_hunger, energy, max_energy, happiness, max_happiness, xp, level')
-        .eq('id', petId).single();
+      // Get item effects
+      var invRow = await supabaseClient.from('user_inventory').select('item_id, quantity').eq('id', invId).single();
+      if (invRow.error || !invRow.data) { showToast('Could not find item.'); return; }
+      var itemRes = await supabaseClient.from('items').select('hunger_effect, energy_effect, happiness_effect, xp_effect').eq('id', invRow.data.item_id).single();
+      if (itemRes.error || !itemRes.data) { showToast('Could not find item effects.'); return; }
+      var ef = itemRes.data;
 
-      if (!pet) { showToast('Could not find pet data.'); return; }
+      var petRes = await supabaseClient.from('user_pets').select('hunger, max_hunger, energy, max_energy, happiness, max_happiness, xp, level').eq('id', petId).single();
+      if (petRes.error || !petRes.data) { showToast('Could not find pet.'); return; }
+      var pet = petRes.data;
 
-      const updates = {};
-      if (hungerEffect > 0) updates.hunger = Math.min(pet.hunger + hungerEffect, pet.max_hunger);
-      if (energyEffect > 0) updates.energy = Math.min(pet.energy + energyEffect, pet.max_energy);
-      if (happinessEffect > 0) updates.happiness = Math.min(pet.happiness + happinessEffect, pet.max_happiness);
-      if (xpEffect > 0) updates.xp = pet.xp + xpEffect;
+      var updates = {};
+      if (ef.hunger_effect > 0) updates.hunger = Math.min(pet.hunger + ef.hunger_effect, pet.max_hunger);
+      if (ef.energy_effect > 0) updates.energy = Math.min(pet.energy + ef.energy_effect, pet.max_energy);
+      if (ef.happiness_effect > 0) updates.happiness = Math.min(pet.happiness + ef.happiness_effect, pet.max_happiness);
+      if (ef.xp_effect > 0) updates.xp = pet.xp + ef.xp_effect;
 
-      const { error: petError } = await supabaseClient
-        .from('user_pets').update(updates).eq('id', petId);
-      if (petError) { showToast('Something went wrong!'); return; }
+      if (!Object.keys(updates).length) { showToast('This item has no effects yet.'); return; }
 
-      // Reduce inventory
-      const { data: invRow } = await supabaseClient
-        .from('user_inventory').select('quantity').eq('id', invId).single();
-      if (invRow) {
-        if (invRow.quantity <= 1) {
-          await supabaseClient.from('user_inventory').delete().eq('id', invId);
-        } else {
-          await supabaseClient.from('user_inventory').update({ quantity: invRow.quantity - 1 }).eq('id', invId);
-        }
-      }
+      await supabaseClient.from('user_pets').update(updates).eq('id', petId);
+
+      var qty = invRow.data.quantity;
+      if (qty <= 1) { await supabaseClient.from('user_inventory').delete().eq('id', invId); }
+      else { await supabaseClient.from('user_inventory').update({quantity: qty - 1}).eq('id', invId); }
 
       showToast('✨ Used ' + itemName + ' on ' + petNickname + '!');
       await loadInventory();
     }
 
-    function showToast(message) {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-
     init();
   </script>
-
 </body>
 </html>
