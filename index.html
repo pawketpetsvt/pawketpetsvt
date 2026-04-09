@@ -221,7 +221,17 @@
   <!-- TWITCH -->
   <div class="page-section" id="section-twitch">
     <div class="page-wrap">
-      <div class="page-hero"><div class="sparkle-row">&#128995; &#10022; &#128995;</div><h1>Link Your Twitch</h1><p>Connect Twitch to earn PP for watching streams! &#10024;</p></div>
+      <div class="page-hero"><div class="sparkle-row">&#128995; &#10022; &#128995;</div><h1>Twitch &amp; Rewards</h1><p>Connect your Twitch and check out our team! &#10024;</p></div>
+
+      <!-- Team showcase -->
+      <div class="section-header"><h2>Our Streaming Team</h2><div class="section-line"></div></div>
+      <a href="https://www.twitch.tv/team/vcutiez" target="_blank" class="team-page-link">
+        &#128995; Visit Our Official Twitch Team Page
+      </a>
+      <div class="team-showcase" id="team-showcase"><div class="spinner"></div></div>
+
+      <!-- Link account -->
+      <div class="section-header" style="margin-top:36px;"><h2>Link Your Account</h2><div class="section-line"></div></div>
       <div class="token-box" id="token-box" style="display:none">
         <h3>Authorization Successful!</h3>
         <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:10px;">Streamers: copy this token for Cloudflare. Viewers can ignore this.</p>
@@ -314,11 +324,11 @@
 'use strict';
 
 // ── CONFIG ──────────────────────────────
-var TWITCH_CLIENT_ID = 'moqd3war5e7fleif8yte1d8n6kl25u';
+var TWITCH_CLIENT_ID = 'PASTE_YOUR_TWITCH_CLIENT_ID_HERE';
 var TWITCH_REDIRECT_URI = 'https://pawketpetsvt.github.io/';
 var STREAMER_IDS = {
-  embertail: '91821604',
-  pyxshuul:  '1459912293'
+  embertail: 'EMBERTAIL_TWITCH_USER_ID',
+  pyxshuul:  'PYXSHUUL_TWITCH_USER_ID'
 };
 
 // ── GLOBALS ──────────────────────────────
@@ -744,6 +754,50 @@ async function useItem(petId) {
   btn.disabled=false; btn.textContent='Use';
 }
 
+function getMoodEmoji(happiness, hunger, energy) {
+  if (happiness >= 80 && hunger >= 60) return '&#128516;';
+  if (happiness >= 60) return '&#128512;';
+  if (happiness >= 40) return '&#128528;';
+  if (happiness >= 20) return '&#128542;';
+  return '&#128549;';
+}
+
+function getHabitatStyle(vtuberName) {
+  var habitats = {
+    'Embertail': 'background: linear-gradient(180deg, #ff9f43 0%, #ffcc70 60%, #fffaf6 100%)',
+    'Pyxshuul':  'background: linear-gradient(180deg, #b06aff 0%, #e8d5ff 60%, #fffaf6 100%)',
+  };
+  return habitats[vtuberName] || 'background: linear-gradient(180deg, var(--purple) 0%, var(--purple-light) 60%, #fffaf6 100%)';
+}
+
+function getAchievements(pet) {
+  var badges = [];
+  if (pet.level >= 2) badges.push({icon:'&#11088;', label:'Lv.'+pet.level, cls:'gold'});
+  if (pet.level >= 5) badges.push({icon:'&#127775;', label:'Veteran', cls:'purple'});
+  if (pet.level >= 10) badges.push({icon:'&#128081;', label:'Legend', cls:'gold'});
+  if (pet.xp >= 50) badges.push({icon:'&#127941;', label:'Trained', cls:'bronze'});
+  if (pet.happiness >= 80) badges.push({icon:'&#128150;', label:'Happy', cls:'silver'});
+  if (pet.max_hunger > 100) badges.push({icon:'&#128200;', label:'Growing', cls:'purple'});
+  return badges;
+}
+
+function getLastSeenText(lastFed, lastPlayed) {
+  var lastTime = null;
+  if (lastFed && lastPlayed) {
+    lastTime = new Date(lastFed) > new Date(lastPlayed) ? new Date(lastFed) : new Date(lastPlayed);
+  } else if (lastFed) { lastTime = new Date(lastFed); }
+  else if (lastPlayed) { lastTime = new Date(lastPlayed); }
+  else return 'Never interacted yet';
+
+  var mins = Math.floor((new Date() - lastTime) / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + ' minute' + (mins===1?'':'s') + ' ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' hour' + (hrs===1?'':'s') + ' ago';
+  var days = Math.floor(hrs / 24);
+  return days + ' day' + (days===1?'':'s') + ' ago';
+}
+
 function makeMyPetCard(pet) {
   var info = pet.pets || {};
   var xpNext = pet.level * 100;
@@ -751,31 +805,67 @@ function makeMyPetCard(pet) {
   var hapPct = Math.round(pet.happiness/pet.max_happiness*100);
   var ePct = Math.round(pet.energy/pet.max_energy*100);
   var xpPct = Math.min(pet.xp/xpNext*100, 100);
+  var moodEmoji = getMoodEmoji(pet.happiness, pet.hunger, pet.energy);
+  var achievements = getAchievements(pet);
+  var lastSeen = getLastSeenText(pet.last_fed, pet.last_played);
 
   var card = makeEl('div', {class:'my-pet-card', id:'petcard-'+pet.id});
 
-  // Header
-  var header = makeEl('div', {class:'pet-card-header'});
+  // Habitat banner
+  var habitat = makeEl('div', {class:'pet-habitat'});
+  habitat.setAttribute('style', getHabitatStyle(info.vtuber_name));
+
+  // Floating avatar with mood badge
+  var avatarWrap = makeEl('div', {class:'pet-avatar-wrap'});
   var avatar = makeEl('div', {class:'pet-avatar'});
   if (info.image_file) {
     var img = makeEl('img', {src:'images/'+info.image_file, alt:pet.nickname});
     img.onerror = function(){ this.parentElement.innerHTML='&#128062;'; };
     avatar.appendChild(img);
   } else { avatar.innerHTML='&#128062;'; }
-  var cardInfo = makeEl('div', {class:'pet-card-info'});
-  cardInfo.appendChild(makeEl('div', {class:'pet-card-nickname'}, pet.nickname));
+  var moodBadge = makeEl('div', {class:'mood-badge'});
+  moodBadge.innerHTML = moodEmoji;
+  avatarWrap.appendChild(avatar);
+  avatarWrap.appendChild(moodBadge);
+  habitat.appendChild(avatarWrap);
+  card.appendChild(habitat);
+
+  // Card body
+  var body = makeEl('div', {class:'pet-card-body'});
+
+  // Name and info
+  var headerInfo = makeEl('div', {class:'pet-card-header-info'});
+  headerInfo.appendChild(makeEl('div', {class:'pet-card-nickname'}, pet.nickname));
   var speciesEl = makeEl('div', {class:'pet-card-species'});
   if (info.vtuber_name) speciesEl.textContent = info.vtuber_name;
   if (info.twitch_url) {
-    var tLink = makeEl('a', {href:info.twitch_url, target:'_blank', style:'font-size:0.72rem;background:#9146ff;color:white;padding:2px 7px;border-radius:10px;font-family:Fredoka One,cursive;text-decoration:none;margin-left:6px;'}, 'Watch Live');
+    var tLink = makeEl('a', {href:info.twitch_url, target:'_blank'});
+    tLink.style.cssText = 'font-size:0.72rem;background:#9146ff;color:white;padding:2px 7px;border-radius:10px;font-family:Fredoka One,cursive;text-decoration:none;margin-left:6px;';
+    tLink.textContent = 'Watch Live';
     speciesEl.appendChild(tLink);
   }
-  cardInfo.appendChild(speciesEl);
-  cardInfo.appendChild(makeEl('div', {class:'pet-card-level', id:'lvl-'+pet.id}, 'Lv. '+pet.level+' | Max: '+pet.max_hunger));
-  header.appendChild(avatar); header.appendChild(cardInfo);
-  card.appendChild(header);
+  headerInfo.appendChild(speciesEl);
+  headerInfo.appendChild(makeEl('div', {class:'pet-card-level', id:'lvl-'+pet.id}, 'Lv. '+pet.level+' | Max Stats: '+pet.max_hunger));
+  body.appendChild(headerInfo);
 
-  if (pet.happiness <= 20 || pet.hunger <= 10) card.appendChild(makeEl('div', {class:'sadness-warning'}, 'Your pet needs attention!'));
+  // Last interaction
+  body.appendChild(makeEl('div', {class:'pet-last-seen'}, 'Last interaction: ' + lastSeen));
+
+  // Achievements
+  if (achievements.length > 0) {
+    var achRow = makeEl('div', {class:'achievements-row'});
+    achievements.forEach(function(ach) {
+      var badge = makeEl('span', {class:'ach-badge '+ach.cls});
+      badge.innerHTML = ach.icon + ' ' + ach.label;
+      achRow.appendChild(badge);
+    });
+    body.appendChild(achRow);
+  }
+
+  // Warning if neglected
+  if (pet.happiness <= 20 || pet.hunger <= 10) {
+    body.appendChild(makeEl('div', {class:'sadness-warning'}, moodEmoji + ' Your pet needs attention!'));
+  }
 
   // Stat bars
   var bars = makeEl('div', {class:'stat-bars'});
@@ -791,7 +881,7 @@ function makeMyPetCard(pet) {
   xpRow.appendChild(xpWrap);
   xpRow.appendChild(makeEl('span', {class:'xp-value', id:'xp-val-'+pet.id}, pet.xp+'/'+xpNext));
   bars.appendChild(xpRow);
-  card.appendChild(bars);
+  body.appendChild(bars);
 
   // Action buttons
   var actions = makeEl('div', {class:'pet-actions'});
@@ -802,10 +892,11 @@ function makeMyPetCard(pet) {
   if (pet.energy < 10) playBtn.disabled=true;
   playBtn.onclick = function(){ play(pet.id); };
   actions.appendChild(feedBtn); actions.appendChild(playBtn);
-  card.appendChild(actions);
+  body.appendChild(actions);
 
-  card.appendChild(makeDropdown(pet.id));
-  card.appendChild(makeEl('div', {class:'stat-flash', id:'flash-'+pet.id}));
+  body.appendChild(makeDropdown(pet.id));
+  body.appendChild(makeEl('div', {class:'stat-flash', id:'flash-'+pet.id}));
+  card.appendChild(body);
   return card;
 }
 
@@ -1126,33 +1217,90 @@ async function initTwitchTab() {
     hash.substring(1).split('&').forEach(function(part){var pair=part.split('=');params[pair[0]]=decodeURIComponent(pair[1]||'');});
     var token=params['access_token'];
     if(token){
-      el('token-display').value=token;
-      el('token-box').style.display='block';
+      var td = document.getElementById('token-display');
+      if(td) td.value=token;
+      var tb = document.getElementById('token-box');
+      if(tb) tb.style.display='block';
       await handleTwitchCallback(token);
     }
     window.history.replaceState({},'',window.location.pathname);
   }
   await checkTwitchLinked();
+  await loadTeamShowcase();
 }
 
-function copyToken(){var ta=el('token-display');ta.select();document.execCommand('copy');showToast('Token copied!');}
+// Team members config — add new members here as they join
+var TEAM_MEMBERS = [
+  { name: 'Embertail', login: 'embertail', twitchUrl: 'https://twitch.tv/Embertail', petName: 'Ember' },
+  { name: 'Pyxshuul',  login: 'pyxshuul',  twitchUrl: 'https://twitch.tv/Pyxshuul',  petName: 'Pyxie' }
+];
 
-function linkTwitch(){
-  var scopes='user:read:follows';
-  var url='https://id.twitch.tv/oauth2/authorize?client_id='+TWITCH_CLIENT_ID+'&redirect_uri='+encodeURIComponent(TWITCH_REDIRECT_URI)+'&response_type=token&scope='+encodeURIComponent(scopes);
-  window.location.href=url;
+async function loadTeamShowcase() {
+  var showcase = document.getElementById('team-showcase');
+  if (!showcase) return;
+  showcase.innerHTML = '';
+
+  // Check live status for each member using Twitch API if user has linked their account
+  // Falls back to showing static cards if not linked
+  var liveData = {};
+  try {
+    var user = currentUser;
+    if (user) {
+      var pr = await supabaseClient.from('players').select('twitch_token').eq('id', user.id).single();
+      if (pr.data && pr.data.twitch_token) {
+        var logins = TEAM_MEMBERS.map(function(m){ return 'user_login='+m.login; }).join('&');
+        var resp = await fetch('https://api.twitch.tv/helix/streams?' + logins, {
+          headers: { 'Client-Id': TWITCH_CLIENT_ID, 'Authorization': 'Bearer ' + pr.data.twitch_token }
+        });
+        var data = await resp.json();
+        if (data.data) {
+          data.data.forEach(function(stream) {
+            liveData[stream.user_login.toLowerCase()] = {
+              live: true,
+              viewers: stream.viewer_count,
+              title: stream.title
+            };
+          });
+        }
+      }
+    }
+  } catch(e) { console.log('Could not check live status:', e); }
+
+  TEAM_MEMBERS.forEach(function(member) {
+    var card = document.createElement('div');
+    card.className = 'team-member-card';
+
+    // Avatar placeholder (uses first letter of name)
+    var avatarDiv = document.createElement('div');
+    avatarDiv.className = 'team-avatar';
+    avatarDiv.style.cssText = 'display:flex;align-items:center;justify-content:center;font-family:Fredoka One,cursive;font-size:2rem;color:var(--purple-dark);background:var(--purple-light);';
+    avatarDiv.textContent = member.name.charAt(0);
+    card.appendChild(avatarDiv);
+
+    card.appendChild(makeEl('div', {class:'team-name'}, member.name));
+
+    var liveStatus = liveData[member.login.toLowerCase()];
+    var badge = makeEl('span', {class: liveStatus ? 'team-live-badge live' : 'team-live-badge offline'});
+    badge.textContent = liveStatus ? '&#128308; LIVE' : 'Offline';
+    badge.innerHTML = liveStatus ? '&#128308; LIVE' : 'Offline';
+    card.appendChild(badge);
+
+    if (liveStatus && liveStatus.viewers) {
+      card.appendChild(makeEl('div', {class:'team-viewers'}, liveStatus.viewers.toLocaleString() + ' viewers'));
+    }
+
+    if (liveStatus && liveStatus.title) {
+      var title = makeEl('div', {style:'font-size:0.78rem;color:var(--text-light);line-height:1.3;max-height:36px;overflow:hidden;'});
+      title.textContent = liveStatus.title;
+      card.appendChild(title);
+    }
+
+    var watchBtn = makeEl('a', {href:member.twitchUrl, target:'_blank', class:'btn-watch'}, 'Watch on Twitch');
+    card.appendChild(watchBtn);
+
+    showcase.appendChild(card);
+  });
 }
-
-async function handleTwitchCallback(token) {
-  var resp=await fetch('https://api.twitch.tv/helix/users',{headers:{'Client-Id':TWITCH_CLIENT_ID,'Authorization':'Bearer '+token}});
-  var data=await resp.json();
-  if(!data.data||!data.data[0]){showToast('Could not get Twitch info.');return;}
-  var tu=data.data[0];
-  if(!currentUser)return;
-  await supabaseClient.from('players').update({twitch_id:tu.id,twitch_username:tu.login,twitch_token:token}).eq('id',currentUser.id);
-  showToast('Twitch linked as '+tu.display_name+'!');
-}
-
 async function checkTwitchLinked() {
   if(!currentUser)return;
   var res=await supabaseClient.from('players').select('twitch_username,twitch_id,twitch_token,twitch_follow_rewards').eq('id',currentUser.id).single();
