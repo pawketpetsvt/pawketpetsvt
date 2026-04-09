@@ -600,8 +600,8 @@ function renderPetCard(pet) {
   if (isPlaceholder) btn='<button class="btn-locked">Coming Soon</button>';
   else if (isOwned) btn='<button class="btn-owned">Already Adopted!</button>';
   else if (!canAfford) btn='<button class="btn-locked">Need '+pet.price+' PP</button>';
-  else btn='<button class="btn btn-primary btn-adopt" onclick="openAdoptModal(\''+pet.id+'\',\''+pet.name.replace(/'/g,"\\'")+'\',\''+((pet.description||'').replace(/'/g,"\\'")+'\',\''+(pet.image_file||'')+'\','+price+')">Adopt!</button>');
-  return '<div class="pet-card'+(isPlaceholder?' placeholder':'')+(isOwned?' already-owned':'')+'">'+
+  else btn='<button class="btn btn-primary btn-adopt" onclick="openAdoptModal(this)">Adopt!</button>';
+  return '<div class="pet-card'+(isPlaceholder?' placeholder':'')+(isOwned?' already-owned':'')+'" data-petid="'+pet.id+'" data-petname="'+pet.name+'" data-petdesc="'+(pet.description||'')+'" data-imagefile="'+(pet.image_file||'')+'" data-price="'+price+'">';
     '<div class="pet-image-wrap">'+imgHtml+'</div>'+
     '<div class="pet-name">'+(isPlaceholder?'???':pet.name)+'</div>'+
     (pet.vtuber_name&&!isPlaceholder?'<div class="pet-vtuber">'+pet.vtuber_name+'</div>':'')+
@@ -609,14 +609,21 @@ function renderPetCard(pet) {
     priceHtml+btn+'</div>';
 }
 
-function openAdoptModal(petId, petName, petDesc, imageFile, price) {
+function openAdoptModal(btn) {
+  var card = btn.closest('[data-petid]');
+  var petId = card.dataset.petid;
+  var petName = card.dataset.petname;
+  var petDesc = card.dataset.petdesc;
+  var imageFile = card.dataset.imagefile;
+  var price = parseInt(card.dataset.price);
   selectedPet = {id:petId, name:petName, description:petDesc, image_file:imageFile, price:price};
   var mi = document.getElementById('modal-image');
   mi.innerHTML = imageFile ? '<img src="images/'+imageFile+'" alt="'+petName+'" onerror="this.parentElement.innerHTML=\'&#128062;\'">' : '&#128062;';
   document.getElementById('modal-title').textContent = 'Adopt '+petName+'?';
-  document.getElementById('modal-desc').textContent = price===0 ? 'Your first pet is free! Give them a nickname.' : 'This will cost '+price+' PawketPoints.';
+  document.getElementById('modal-desc').textContent = price===0 ? 'Your first pet is free!' : 'This will cost '+price+' PawketPoints.';
   document.getElementById('nickname-input').value = '';
   document.getElementById('adopt-modal').classList.add('show');
+}
 }
 function closeAdoptModal() { document.getElementById('adopt-modal').classList.remove('show'); selectedPet=null; }
 function closeSuccessModal() { document.getElementById('success-modal').classList.remove('show'); tabsLoaded['adopt']=false; loadAdoptPets(); }
@@ -694,13 +701,22 @@ function getEffectText(item) {
 }
 
 function buildDropdown(petId) {
-  if (!inventoryItems.length) return '<div class="use-item-section"><div class="use-item-label">Use an Item</div><p style="font-size:0.8rem;color:var(--text-light)">No items. <a href="#" onclick="showTab(\'shop\')">Visit the shop!</a></p></div>';
-  var opts='<option value="">Choose an item</option>';
-  inventoryItems.forEach(function(item){opts+='<option value="'+item.invId+'">'+item.name+' (x'+item.qty+') - '+getEffectText(item)+'</option>';});
-  return '<div class="use-item-section"><div class="use-item-label">Use an Item</div>'+
-    '<div class="use-item-row"><select class="item-select" id="sel-'+petId+'" onchange="previewItem(\''+petId+'\')">'+opts+'</select>'+
-    '<button class="btn-use-item" id="usebtn-'+petId+'" onclick="useItem(\''+petId+\')" disabled>Use</button></div>'+
-    '<div class="item-effect-preview" id="preview-'+petId+'"></div></div>';
+  if (!inventoryItems.length) {
+    return '<div class="use-item-section"><div class="use-item-label">Use an Item</div><p style="font-size:0.8rem;color:var(--text-light)">No items. Visit the shop!</p></div>';
+  }
+  var opts = '<option value="">Choose an item</option>';
+  inventoryItems.forEach(function(item) {
+    opts += '<option value="'+item.invId+'">'+item.name+' (x'+item.qty+') - '+getEffectText(item)+'</option>';
+  });
+  return '<div class="use-item-section">'
+    + '<div class="use-item-label">Use an Item</div>'
+    + '<div class="use-item-row">'
+    + '<select class="item-select" id="sel-'+petId+'" onchange="previewItem(\''+petId+'\')">'+opts+'</select>'
+    + '<button class="btn-use-item" id="usebtn-'+petId+'" onclick="useItem(\''+petId+'\')" disabled>Use</button>'
+    + '</div>'
+    + '<div class="item-effect-preview" id="preview-'+petId+'"></div>'
+    + '</div>';
+}
 }
 
 function previewItem(petId) {
@@ -909,8 +925,12 @@ async function loadInventory() {
     var item=itemMap[row.item_id]||{};
     var em=itemEmoji(item.item_type);
     var imgHtml=item.image_url?'<img src="'+item.image_url+'" alt="'+(item.name||'')+'" onerror="this.parentElement.innerHTML=\''+em+'\'" style="width:100%;height:100%;object-fit:cover;">':em;
-    return '<div class="inv-card"><div class="inv-icon">'+imgHtml+'</div><div class="inv-name">'+(item.name||'Item')+'</div><div class="inv-qty">x'+row.quantity+'</div>'+
-      '<button class="btn btn-sm btn-primary" onclick="openUseModal(\''+row.id+'\',\''+((item.name||'').replace(/'/g,"\\'")+'\')">Use</button></div>');
+    return '<div class="inv-card">'
+      + '<div class="inv-icon">'+imgHtml+'</div>'
+      + '<div class="inv-name">'+(item.name||'Item')+'</div>'
+      + '<div class="inv-qty">x'+row.quantity+'</div>'
+      + '<button class="btn btn-sm btn-primary" data-invid="'+row.id+'" data-itemname="'+(item.name||'')+'" onclick="openUseModalFromBtn(this)">Use</button>'
+      + '</div>';
   }).join('');
 }
 
@@ -1188,6 +1208,9 @@ async function unlinkTwitch(){
   document.getElementById('twitch-not-linked').style.display='block';
   document.getElementById('twitch-linked').style.display='none';
   showToast('Twitch unlinked.');
+}
+  function openUseModalFromBtn(btn) {
+  openUseModal(btn.dataset.invid, btn.dataset.itemname);
 }
 
 // ════════════════════════════════════════
