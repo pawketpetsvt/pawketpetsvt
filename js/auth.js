@@ -1,19 +1,13 @@
-// auth.js - handles login, registration, session, daily bonus, stat calculations
-
-async function redirectIfLoggedIn() {
-  var data = (await supabaseClient.auth.getSession()).data;
-  if (data.session) window.location.href = 'index.html';
-}
-
-async function requireLogin() {
-  var data = (await supabaseClient.auth.getSession()).data;
-  if (!data.session) window.location.href = 'login.html';
-  return data.session;
-}
+// auth.js - authentication and stat calculations for SPA
 
 async function getCurrentUser() {
   var data = (await supabaseClient.auth.getSession()).data;
   return data.session ? data.session.user : null;
+}
+
+async function requireLogin() {
+  var data = (await supabaseClient.auth.getSession()).data;
+  return data.session || null;
 }
 
 async function registerUser(email, password, username) {
@@ -39,7 +33,7 @@ async function loginUser(email, password) {
 
 async function logoutUser() {
   await supabaseClient.auth.signOut();
-  window.location.href = 'login.html';
+  window.location.reload();
 }
 
 async function checkDailyBonus(userId) {
@@ -55,22 +49,18 @@ async function checkDailyBonus(userId) {
   return { awarded: false };
 }
 
-// Energy regens 5 per hour, capped at max
 function calculateEnergyRegen(currentEnergy, maxEnergy, lastPlayedTimestamp) {
   if (!lastPlayedTimestamp) return currentEnergy;
   var hours = (new Date() - new Date(lastPlayedTimestamp)) / (1000 * 60 * 60);
   return Math.min(currentEnergy + Math.floor(hours * 5), maxEnergy);
 }
 
-// Hunger decays 15 per day = 0.625 per hour, min 0
 function calculateHungerDecay(currentHunger, lastFedTimestamp) {
   if (!lastFedTimestamp) return currentHunger;
   var hours = (new Date() - new Date(lastFedTimestamp)) / (1000 * 60 * 60);
   return Math.max(currentHunger - Math.floor(hours * 0.625), 0);
 }
 
-// Happiness decays 15 per day = 0.625 per hour
-// Uses most recent of last_fed or last_played as the reference point
 function calculateHappinessDecay(currentHappiness, lastFedTimestamp, lastPlayedTimestamp) {
   var lastInteraction = null;
   if (lastFedTimestamp && lastPlayedTimestamp) {
@@ -87,48 +77,17 @@ function calculateHappinessDecay(currentHappiness, lastFedTimestamp, lastPlayedT
   return Math.max(currentHappiness - Math.floor(hours * 0.625), 0);
 }
 
-// Level up — returns updated stats with max stats increased by 5 each level
 function calculateLevelUp(currentXp, currentLevel, currentMaxHunger, currentMaxEnergy, currentMaxHappiness) {
   var xpForNext = currentLevel * 100;
   if (currentXp < xpForNext) {
     return { leveled: false, level: currentLevel, xp: currentXp, maxHunger: currentMaxHunger, maxEnergy: currentMaxEnergy, maxHappiness: currentMaxHappiness };
   }
-  var newLevel = currentLevel + 1;
-  var leftoverXp = currentXp - xpForNext;
-  var newMaxHunger = currentMaxHunger + 5;
-  var newMaxEnergy = currentMaxEnergy + 5;
-  var newMaxHappiness = currentMaxHappiness + 5;
   return {
     leveled: true,
-    level: newLevel,
-    xp: leftoverXp,
-    maxHunger: newMaxHunger,
-    maxEnergy: newMaxEnergy,
-    maxHappiness: newMaxHappiness
+    level: currentLevel + 1,
+    xp: currentXp - xpForNext,
+    maxHunger: currentMaxHunger + 5,
+    maxEnergy: currentMaxEnergy + 5,
+    maxHappiness: currentMaxHappiness + 5
   };
-}
-
-// Updates navbar — reads username from players table, never shows email
-async function updateNav() {
-  var user = await getCurrentUser();
-  var navUser = document.getElementById('nav-user');
-  var navPoints = document.getElementById('nav-points');
-  var navLogout = document.getElementById('nav-logout');
-  var navLogin = document.getElementById('nav-login');
-  var navLinks = document.getElementById('nav-links-loggedin');
-
-  if (user) {
-    var pr = await supabaseClient.from('players').select('username, pawketpoints').eq('id', user.id).single();
-    if (pr.data) {
-      if (navUser) navUser.textContent = '⭐ ' + pr.data.username;
-      if (navPoints) { navPoints.textContent = '🪙 ' + pr.data.pawketpoints + ' PP'; navPoints.style.display = 'inline-block'; }
-    }
-    if (navLogout) navLogout.style.display = 'inline-block';
-    if (navLogin) navLogin.style.display = 'none';
-    if (navLinks) navLinks.style.display = 'flex';
-  } else {
-    if (navLogout) navLogout.style.display = 'none';
-    if (navLogin) navLogin.style.display = 'inline-block';
-    if (navLinks) navLinks.style.display = 'none';
-  }
 }
