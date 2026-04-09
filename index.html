@@ -4,63 +4,1196 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; connect-src 'self' https://hqzugbxutgefjilgmxqu.supabase.co https://*.supabase.co https://id.twitch.tv https://api.twitch.tv data: blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PawketPetsVT — Home</title>
+  <title>PawketPetsVT</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="page-wrap">
-    <div class="welcome-panel">
-      <img src="images/logo.png" alt="PawketPetsVT" class="logo-hero" />
-      <h1>Welcome to PawketPetsVT!</h1>
-      <p>A cozy little corner of the internet where you can adopt virtual pets based on your favourite VTubers, play games, collect items, and earn rewards — both here <em>and</em> on our Twitch streams! ✨</p>
-      <div id="home-cta"></div>
-      <div class="social-links" style="margin-top:20px;">
-        <a href="https://twitch.tv/Embertail" target="_blank" class="social-link">🟣 Embertail on Twitch</a>
-        <a href="https://twitch.tv/Pyxshuul" target="_blank" class="social-link">🟣 Pyxshuul on Twitch</a>
-      </div>
-    </div>
 
-    <div id="loggedin-section" style="display:none">
-      <div class="section-header"><h2>✦ What do you want to do?</h2><div class="section-line"></div></div>
-      <div class="quicklinks">
-        <a href="adopt.html" class="quicklink-card"><span class="ql-icon">🐣</span><span class="ql-label">Adopt a Pet</span></a>
-        <a href="mypets.html" class="quicklink-card"><span class="ql-icon">💖</span><span class="ql-label">My Pets</span></a>
-        <a href="shop.html" class="quicklink-card"><span class="ql-icon">🛍️</span><span class="ql-label">Shop</span></a>
-        <a href="minigames.html" class="quicklink-card"><span class="ql-icon">🎮</span><span class="ql-label">Minigames</span></a>
-        <a href="news.html" class="quicklink-card"><span class="ql-icon">📰</span><span class="ql-label">News</span></a>
-      </div>
-    </div>
+<!-- AUDIO - persistent, never reloads -->
+<audio id="bg-music" loop>
+  <source src="music.mp3" type="audio/mpeg" />
+</audio>
 
-    <div class="section-header"><h2>✧ About PawketPetsVT</h2><div class="section-line"></div></div>
-    <div class="card" style="line-height:1.8;color:var(--text-light);font-size:1rem;">
-      <p><strong style="color:var(--purple-dark);">PawketPetsVT</strong> is a fan-interactive pet game built around the VTuber group of the same name! Inspired by the pet games of the early 2000s (think Neopets vibes ✨), collect, raise, and care for little virtual versions of your favourite streamers.</p>
-      <br>
-      <p>Earn <strong style="color:var(--purple-dark);">🪙 PawketPoints</strong> by playing minigames, watching streams, and interacting with your pets. The more you engage — here and on Twitch — the more your pets will grow! 🌟</p>
+<!-- MUSIC BAR -->
+<div class="music-bar">
+  <span class="music-title">&#127925; PawketPetsVT OST</span>
+  <button class="music-btn" id="music-play-btn" onclick="toggleMusic()" title="Play/Pause">&#9654;</button>
+  <button class="music-btn" onclick="stopMusic()" title="Stop">&#9209;</button>
+  <input type="range" class="music-volume" id="music-volume" min="0" max="1" step="0.05" value="0.4" oninput="setVolume(this.value)" title="Volume">
+  <span class="music-bar-label">Vol</span>
+</div>
+
+<!-- NEWS TICKER -->
+<div class="news-ticker">
+  <div class="news-ticker-inner">Welcome to PawketPetsVT! &nbsp;&nbsp; Adopt your first pet today! &nbsp;&nbsp; Watch Embertail &amp; Pyxshuul live on Twitch! &nbsp;&nbsp; New members coming soon... &nbsp;&nbsp; Earn PawketPoints by playing minigames! &nbsp;&nbsp; Stay tuned for updates! &nbsp;&nbsp;</div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="navbar-logo" onclick="showTab('home')">
+      <img src="images/logo.png" alt="PawketPetsVT" /><span>Pawket</span>PetsVT
+    </div>
+    <div class="navbar-tabs" id="navbar-tabs" style="display:none">
+      <button class="nav-tab active" id="tab-btn-home"       onclick="showTab('home')">Home</button>
+      <button class="nav-tab"        id="tab-btn-adopt"      onclick="showTab('adopt')">Adopt</button>
+      <button class="nav-tab"        id="tab-btn-mypets"     onclick="showTab('mypets')">My Pets</button>
+      <button class="nav-tab"        id="tab-btn-shop"       onclick="showTab('shop')">Shop</button>
+      <button class="nav-tab"        id="tab-btn-minigames"  onclick="showTab('minigames')">Minigames</button>
+      <button class="nav-tab"        id="tab-btn-news"       onclick="showTab('news')">News</button>
+      <button class="nav-tab"        id="tab-btn-twitch"     onclick="showTab('twitch')">Twitch</button>
+    </div>
+    <div class="navbar-user">
+      <span id="nav-user"></span>
+      <span id="nav-points"></span>
+      <button class="btn-nav-action" id="nav-logout" style="display:none" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════
+     AUTH GATE (shown when logged out)
+═══════════════════════════════════════════ -->
+<div id="auth-gate">
+
+  <!-- LOGIN SECTION -->
+  <div class="page-section active" id="section-login">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#10022; &#10023; &#10022;</div>
+        <h1>Welcome Back!</h1>
+        <p>Login to check on your pets and keep the adventure going &#10024;</p>
+      </div>
+      <div class="form-card">
+        <h2>Login</h2>
+        <p class="form-subtitle">Don't have an account? <a href="#" onclick="showAuthSection('register')">Register here!</a></p>
+        <div class="alert alert-error" id="login-error"></div>
+        <div class="alert alert-success" id="login-success"></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="login-email" placeholder="your@email.com" /></div>
+        <div class="form-group"><label>Password</label><input type="password" id="login-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" /></div>
+        <button class="btn btn-primary btn-lg form-submit" id="login-btn" onclick="handleLogin()">Login</button>
+        <div class="form-footer">New here? <a href="#" onclick="showAuthSection('register')">Create an account!</a></div>
+      </div>
     </div>
   </div>
 
-  <footer class="footer">
-    <div class="footer-sparkles">✦ ✧ ★ ✦ ✧ ★ ✦</div>
-    <p>© 2026 PawketPetsVT &nbsp;|&nbsp; Made with 💖 &nbsp;|&nbsp; <a href="https://twitch.tv/Embertail" target="_blank">Twitch</a></p>
-  </footer>
+  <!-- REGISTER SECTION -->
+  <div class="page-section" id="section-register">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#10022; &#10023; &#10022;</div>
+        <h1>Join PawketPetsVT!</h1>
+        <p>Create your account and start your pet collection adventure &#10024;</p>
+      </div>
+      <div class="form-card">
+        <h2>Register</h2>
+        <p class="form-subtitle">Already have an account? <a href="#" onclick="showAuthSection('login')">Login here!</a></p>
+        <div class="alert alert-error" id="reg-error"></div>
+        <div class="alert alert-success" id="reg-success"></div>
+        <div class="form-group"><label>Username</label><input type="text" id="reg-username" placeholder="CoolPetTrainer123" maxlength="30" /></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="reg-email" placeholder="your@email.com" /></div>
+        <div class="form-group"><label>Password</label><input type="password" id="reg-password" placeholder="At least 6 characters" /></div>
+        <div class="form-group"><label>Confirm Password</label><input type="password" id="reg-confirm" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" /></div>
+        <button class="btn btn-primary btn-lg form-submit" id="reg-btn" onclick="handleRegister()">Create Account</button>
+        <div class="form-footer">Already have an account? <a href="#" onclick="showAuthSection('login')">Login!</a></div>
+      </div>
+    </div>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/shared.js"></script>
-  <script>
-    injectShared('home');
-    (async function() {
-      await updateNav();
-      var user = await getCurrentUser();
-      var cta = document.getElementById('home-cta');
-      if (user) {
-        document.getElementById('loggedin-section').style.display = 'block';
-        cta.innerHTML = '<a href="mypets.html" class="btn btn-primary btn-lg" style="margin-right:10px;">💖 My Pets</a><a href="adopt.html" class="btn btn-secondary btn-lg">🐣 Adopt More</a>';
-      } else {
-        cta.innerHTML = '<a href="register.html" class="btn btn-primary btn-lg" style="margin-right:10px;">✨ Get Started Free</a><a href="login.html" class="btn btn-outline btn-lg">Login</a>';
+</div><!-- end auth-gate -->
+
+<!-- ═══════════════════════════════════════════
+     APP (shown when logged in)
+═══════════════════════════════════════════ -->
+<div id="app-content" style="display:none">
+
+  <!-- HOME TAB -->
+  <div class="page-section active" id="section-home">
+    <div class="page-wrap">
+      <div class="welcome-panel">
+        <img src="images/logo.png" alt="PawketPetsVT" class="logo-hero" />
+        <h1>Welcome to PawketPetsVT!</h1>
+        <p>A cozy little corner of the internet where you can adopt virtual pets based on your favourite VTubers, play games, collect items, and earn rewards &#10024;</p>
+        <div id="home-cta" style="margin-top:16px;"></div>
+        <div class="social-links" style="margin-top:18px;">
+          <a href="https://twitch.tv/Embertail" target="_blank" class="social-link">Embertail on Twitch</a>
+          <a href="https://twitch.tv/Pyxshuul" target="_blank" class="social-link">Pyxshuul on Twitch</a>
+        </div>
+      </div>
+      <div class="section-header"><h2>What do you want to do?</h2><div class="section-line"></div></div>
+      <div class="quicklinks">
+        <div class="quicklink-card" onclick="showTab('adopt')"><span class="ql-icon">&#128163;</span><span class="ql-label">Adopt a Pet</span></div>
+        <div class="quicklink-card" onclick="showTab('mypets')"><span class="ql-icon">&#128150;</span><span class="ql-label">My Pets</span></div>
+        <div class="quicklink-card" onclick="showTab('shop')"><span class="ql-icon">&#128717;</span><span class="ql-label">Shop</span></div>
+        <div class="quicklink-card" onclick="showTab('minigames')"><span class="ql-icon">&#127918;</span><span class="ql-label">Minigames</span></div>
+        <div class="quicklink-card" onclick="showTab('news')"><span class="ql-icon">&#128240;</span><span class="ql-label">News</span></div>
+      </div>
+      <div class="section-header"><h2>About PawketPetsVT</h2><div class="section-line"></div></div>
+      <div class="card" style="line-height:1.8;color:var(--text-light);font-size:1rem;">
+        <p><strong style="color:var(--purple-dark);">PawketPetsVT</strong> is a fan-interactive pet game built around the VTuber group of the same name! Inspired by the pet games of the early 2000s, collect, raise, and care for little virtual versions of your favourite streamers.</p>
+        <br>
+        <p>Earn <strong style="color:var(--purple-dark);">PawketPoints</strong> by playing minigames, watching streams, and interacting with your pets. The more you engage here and on Twitch, the more your pets grow!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADOPT TAB -->
+  <div class="page-section" id="section-adopt">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#128163; &#10022; &#128163;</div>
+        <h1>Adopt a Pet!</h1>
+        <p>Choose a VTuber pet to add to your collection. Your first pet is always free! &#10024;</p>
+      </div>
+      <div class="points-banner">
+        <span class="pb-label">Your PawketPoints</span>
+        <span class="pb-amount" id="adopt-points-display">0 PP</span>
+      </div>
+      <div id="pets-grid" class="pets-grid"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- MY PETS TAB -->
+  <div class="page-section" id="section-mypets">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#128150; &#10022; &#128150;</div>
+        <h1>My Pets</h1>
+        <p>Feed them, play with them, and watch them grow! &#10024;</p>
+      </div>
+      <div class="points-banner">
+        <span class="pb-label">Your PawketPoints</span>
+        <span class="pb-amount" id="mypets-points-display">0 PP</span>
+      </div>
+      <div id="mypets-container"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- SHOP TAB -->
+  <div class="page-section" id="section-shop">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#128717; &#10022; &#128717;</div>
+        <h1>The PawketShop</h1>
+        <p>Spend your PawketPoints on treats, toys, and goodies! &#129689;</p>
+      </div>
+      <div class="points-banner">
+        <span class="pb-label">Your PawketPoints</span>
+        <span class="pb-amount" id="shop-points-display">0 PP</span>
+      </div>
+      <div class="shop-tabs">
+        <button class="shop-tab active" id="shop-tab-btn" onclick="showShopTab('items')">Shop</button>
+        <button class="shop-tab" id="inv-tab-btn" onclick="showShopTab('inventory')">My Inventory</button>
+      </div>
+      <div id="shop-items-panel"><div id="shop-grid" class="shop-grid"><div class="spinner"></div></div></div>
+      <div id="shop-inv-panel" style="display:none"><div id="inventory-grid" class="inventory-grid"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+
+  <!-- MINIGAMES TAB -->
+  <div class="page-section" id="section-minigames">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#127918; &#10022; &#127918;</div>
+        <h1>Minigames</h1>
+        <p>Play daily games to earn PawketPoints! &#129689;</p>
+      </div>
+      <div class="points-banner">
+        <span class="pb-label">Your PawketPoints</span>
+        <span class="pb-amount" id="games-points-display">0 PP</span>
+      </div>
+      <div class="games-grid">
+        <!-- DICE -->
+        <div class="game-card">
+          <div class="game-title">Lucky Dice</div>
+          <div class="game-desc">Roll two dice once per day! Whatever you roll is how many PawketPoints you earn. Get a double and earn triple!</div>
+          <span class="game-reward">Up to 36 PP per day</span>
+          <div class="game-area">
+            <div class="dice-wrap"><div class="die" id="die1">&#9856;</div><div class="die" id="die2">&#9856;</div></div>
+            <div id="dice-cooldown" class="cooldown-msg" style="display:none"></div>
+            <button class="btn btn-primary" id="roll-btn" onclick="rollDice()">Roll the Dice!</button>
+            <div class="game-result" id="dice-result"></div>
+          </div>
+        </div>
+        <!-- GUESS -->
+        <div class="game-card">
+          <div class="game-title">Guess the Number</div>
+          <div class="game-desc">I'm thinking of a number between 1 and 10. You have 3 guesses. Get it right and win 25 PP!</div>
+          <span class="game-reward">25 PP if correct</span>
+          <div class="game-area">
+            <div id="guess-cooldown" class="cooldown-msg" style="display:none"></div>
+            <div id="guess-play">
+              <input type="number" class="guess-input" id="guess-input" min="1" max="10" placeholder="?" onkeydown="if(event.key==='Enter')makeGuess()" />
+              <br><br>
+              <button class="btn btn-primary" onclick="makeGuess()">Guess!</button>
+              <div class="attempts-left" id="attempts-left">3 guesses remaining</div>
+            </div>
+            <div class="game-result" id="guess-result"></div>
+          </div>
+        </div>
+        <!-- MEMORY -->
+        <div class="game-card" style="grid-column:1/-1">
+          <div class="game-title">Memory Match</div>
+          <div class="game-desc">Match all 6 pairs! Earn 5 PP per matched pair (up to 30 PP). You get 15 attempts per day.</div>
+          <span class="game-reward">Up to 30 PP per day</span>
+          <div class="game-area">
+            <div id="memory-cooldown" class="cooldown-msg" style="display:none"></div>
+            <div id="memory-play">
+              <div class="memory-stats">
+                <span>Matches: <strong id="match-count">0</strong>/6</span>
+                <span>Tries: <strong id="tries-left">15</strong></span>
+                <span>Earned: <strong id="memory-earned">0</strong> PP</span>
+              </div>
+              <div class="memory-grid" id="memory-grid"></div>
+              <button class="btn btn-outline btn-sm" onclick="initMemory()">New Game</button>
+            </div>
+            <div class="game-result" id="memory-result"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEWS TAB -->
+  <div class="page-section" id="section-news">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#128240; &#10022; &#128240;</div>
+        <h1>News &amp; Announcements</h1>
+        <p>Stay up to date with everything happening in PawketPetsVT! &#10024;</p>
+      </div>
+      <div id="news-container"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- TWITCH TAB -->
+  <div class="page-section" id="section-twitch">
+    <div class="page-wrap">
+      <div class="page-hero">
+        <div class="sparkle-row">&#128995; &#10022; &#128995;</div>
+        <h1>Link Your Twitch</h1>
+        <p>Connect your Twitch account to earn PawketPoints for watching streams! &#10024;</p>
+      </div>
+      <div class="token-box" id="token-box" style="display:none">
+        <h3>Authorization Successful!</h3>
+        <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:10px;">Streamers: copy this token and add it to Cloudflare secrets. Viewers can ignore this box.</p>
+        <textarea class="token-textarea" id="token-display" readonly></textarea>
+        <br><button class="btn-copy btn btn-primary btn-sm" onclick="copyToken()">Copy Token</button>
+      </div>
+      <div class="twitch-card">
+        <h2>Connect Twitch Account</h2>
+        <p>Link your Twitch account to unlock stream rewards! Earn PawketPoints for following our streamers and watching live.</p>
+        <div id="twitch-not-linked">
+          <button class="btn-twitch" onclick="linkTwitch()">&#128995; Connect with Twitch</button>
+          <p style="margin-top:14px;font-size:0.83rem;color:var(--text-light);">We only read your public info. We never post on your behalf.</p>
+        </div>
+        <div id="twitch-linked" style="display:none">
+          <div class="linked-panel">
+            <h3>Twitch Linked!</h3>
+            <p style="color:var(--text-light);font-size:0.88rem;">Connected as: <strong id="twitch-username" style="color:var(--purple-dark)"></strong></p>
+            <ul class="reward-list">
+              <li>Follow Embertail <span class="status-badge" id="follow-ember-badge" style="display:none"></span></li>
+              <li>Follow Pyxshuul <span class="status-badge" id="follow-pyxs-badge" style="display:none"></span></li>
+              <li>+50 PP for each follow (one time)</li>
+            </ul>
+            <button class="btn btn-primary" id="check-follows-btn" onclick="checkFollows()">Check Follows and Claim Rewards</button>
+          </div>
+          <br><button class="btn btn-outline btn-sm" onclick="unlinkTwitch()">Unlink Twitch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end app-content -->
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+<div class="modal-overlay" id="adopt-modal">
+  <div class="modal">
+    <div class="modal-image" id="modal-image">&#128062;</div>
+    <h2 id="modal-title">Adopt this pet?</h2>
+    <p id="modal-desc">Give your new pet a nickname!</p>
+    <div class="modal-nickname-group">
+      <label>Nickname <span style="color:var(--text-light);font-weight:400">(or leave blank)</span></label>
+      <input type="text" id="nickname-input" placeholder="e.g. Ember the Brave" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();}" />
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-outline" onclick="closeAdoptModal()">Cancel</button>
+      <button class="btn btn-primary" id="confirm-adopt-btn" onclick="confirmAdopt()">Adopt!</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="success-modal">
+  <div class="modal">
+    <div style="font-size:3.6rem;margin-bottom:12px;">&#127881;</div>
+    <h2 style="color:var(--purple-dark)">Welcome home!</h2>
+    <p id="success-message">Your new pet has been adopted!</p>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn btn-outline" onclick="closeSuccessModal()">Adopt More</button>
+      <button class="btn btn-primary" onclick="closeSuccessModal();showTab('mypets')">My Pets</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bonus-modal">
+  <div class="modal">
+    <div class="bonus-coins">&#129689;</div>
+    <h2 style="color:var(--purple-dark);margin-bottom:8px;">Daily Bonus!</h2>
+    <p>Welcome back! You earned <strong style="color:var(--purple);font-size:1.2rem;" id="bonus-amount">50 PP</strong> for logging in today!</p>
+    <p style="font-size:0.88rem;color:var(--text-light);margin-bottom:18px;">Come back tomorrow for another bonus! &#10024;</p>
+    <button class="btn btn-primary btn-lg" onclick="closeBonusModal()">Awesome!</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="use-modal">
+  <div class="modal">
+    <h2 id="use-modal-title">Use item</h2>
+    <p id="use-modal-desc">Which pet?</p>
+    <div class="pet-select-list" id="pet-select-list"></div>
+    <button class="btn btn-outline" onclick="closeUseModal()">Cancel</button>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-sparkles">&#10022; &#10023; &#9733; &#10022; &#10023; &#9733; &#10022;</div>
+  <p>&#169; 2026 PawketPetsVT &nbsp;|&nbsp; Made with &#128150; &nbsp;|&nbsp; <a href="https://twitch.tv/Embertail" target="_blank">Twitch</a></p>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script>
+
+// ════════════════════════════════════════
+// MUSIC
+// ════════════════════════════════════════
+var bgMusic = document.getElementById('bg-music');
+bgMusic.volume = 0.4;
+
+document.addEventListener('click', function startMusic() {
+  bgMusic.play().catch(function(){});
+  document.getElementById('music-play-btn').textContent = '\u23F8';
+  document.removeEventListener('click', startMusic);
+}, { once: true });
+
+function toggleMusic() {
+  if (bgMusic.paused) { bgMusic.play().catch(function(){}); document.getElementById('music-play-btn').textContent = '\u23F8'; }
+  else { bgMusic.pause(); document.getElementById('music-play-btn').textContent = '\u25B6'; }
+}
+function stopMusic() {
+  bgMusic.pause(); bgMusic.currentTime = 0;
+  document.getElementById('music-play-btn').textContent = '\u25B6';
+}
+function setVolume(v) { bgMusic.volume = parseFloat(v); }
+
+// ════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+// ════════════════════════════════════════
+// TAB NAVIGATION
+// ════════════════════════════════════════
+var currentTab = 'home';
+var tabsLoaded = {};
+
+function showTab(tab) {
+  // Hide all sections
+  document.querySelectorAll('#app-content .page-section').forEach(function(s){ s.classList.remove('active'); });
+  // Show target
+  var section = document.getElementById('section-' + tab);
+  if (section) section.classList.add('active');
+  // Update nav buttons
+  document.querySelectorAll('.nav-tab').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('tab-btn-' + tab);
+  if (btn) btn.classList.add('active');
+  currentTab = tab;
+  // Lazy load tab content
+  if (!tabsLoaded[tab]) {
+    tabsLoaded[tab] = true;
+    loadTabContent(tab);
+  }
+  window.scrollTo(0, 0);
+}
+
+function loadTabContent(tab) {
+  if (tab === 'adopt') loadAdoptPets();
+  else if (tab === 'mypets') loadMyPets();
+  else if (tab === 'shop') { loadShop(); loadInventory(); }
+  else if (tab === 'minigames') initMinigames();
+  else if (tab === 'news') loadNews();
+  else if (tab === 'twitch') initTwitchTab();
+}
+
+// ════════════════════════════════════════
+// AUTH GATE
+// ════════════════════════════════════════
+function showAuthSection(which) {
+  document.querySelectorAll('#auth-gate .page-section').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('section-' + which).classList.add('active');
+  return false;
+}
+
+async function initApp() {
+  var session = await requireLogin();
+  if (session) {
+    showAppView(session.user);
+  } else {
+    showAuthView();
+  }
+  // Listen for auth changes
+  supabaseClient.auth.onAuthStateChange(function(event, session) {
+    if (event === 'SIGNED_IN' && session) { showAppView(session.user); }
+    else if (event === 'SIGNED_OUT') { showAuthView(); }
+  });
+}
+
+async function showAppView(user) {
+  document.getElementById('auth-gate').style.display = 'none';
+  document.getElementById('app-content').style.display = 'block';
+  document.getElementById('navbar-tabs').style.display = 'flex';
+  document.getElementById('nav-logout').style.display = 'inline-block';
+
+  // Load player data for nav
+  var pr = await supabaseClient.from('players').select('username, pawketpoints').eq('id', user.id).single();
+  if (pr.data) {
+    document.getElementById('nav-user').textContent = '&#11088; ' + pr.data.username;
+    updateAllPointsDisplays(pr.data.pawketpoints);
+  }
+
+  // Check daily bonus
+  var bonus = await checkDailyBonus(user.id);
+  if (bonus.awarded) {
+    document.getElementById('bonus-amount').textContent = bonus.amount + ' PP';
+    document.getElementById('bonus-modal').classList.add('show');
+    updateAllPointsDisplays(bonus.newTotal);
+  }
+
+  // Show home tab
+  showTab('home');
+  document.getElementById('home-cta').innerHTML =
+    '<button class="btn btn-primary btn-lg" onclick="showTab(\'mypets\')" style="margin-right:10px;">My Pets</button>' +
+    '<button class="btn btn-secondary btn-lg" onclick="showTab(\'adopt\')">Adopt More</button>';
+
+  window._currentUser = user;
+}
+
+function showAuthView() {
+  document.getElementById('auth-gate').style.display = 'block';
+  document.getElementById('app-content').style.display = 'none';
+  document.getElementById('navbar-tabs').style.display = 'none';
+  document.getElementById('nav-logout').style.display = 'none';
+  document.getElementById('nav-user').textContent = '';
+  document.getElementById('nav-points').textContent = '';
+  tabsLoaded = {};
+}
+
+function updateAllPointsDisplays(points) {
+  var str = '&#129689; ' + points + ' PP';
+  var ids = ['adopt-points-display','mypets-points-display','shop-points-display','games-points-display'];
+  ids.forEach(function(id){ var el = document.getElementById(id); if (el) el.textContent = points + ' PP'; });
+  document.getElementById('nav-points').innerHTML = str;
+  window._currentPoints = points;
+}
+
+async function refreshPoints() {
+  var user = window._currentUser; if (!user) return;
+  var pr = await supabaseClient.from('players').select('pawketpoints').eq('id', user.id).single();
+  if (pr.data) updateAllPointsDisplays(pr.data.pawketpoints);
+}
+
+async function handleLogout() {
+  await logoutUser();
+}
+
+function closeBonusModal() { document.getElementById('bonus-modal').classList.remove('show'); }
+
+// ════════════════════════════════════════
+// LOGIN / REGISTER
+// ════════════════════════════════════════
+async function handleLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var password = document.getElementById('login-password').value;
+  var btn = document.getElementById('login-btn');
+  var err = document.getElementById('login-error');
+  var suc = document.getElementById('login-success');
+  err.classList.remove('show'); suc.classList.remove('show');
+  if (!email || !password) { err.textContent = 'Please fill in all fields!'; err.classList.add('show'); return; }
+  btn.textContent = 'Logging in...'; btn.disabled = true;
+  try {
+    await loginUser(email, password);
+    suc.textContent = 'Logged in! Loading...'; suc.classList.add('show');
+  } catch(e) {
+    err.textContent = e.message; err.classList.add('show');
+    btn.textContent = 'Login'; btn.disabled = false;
+  }
+}
+
+async function handleRegister() {
+  var username = document.getElementById('reg-username').value.trim();
+  var email = document.getElementById('reg-email').value.trim();
+  var password = document.getElementById('reg-password').value;
+  var confirm = document.getElementById('reg-confirm').value;
+  var btn = document.getElementById('reg-btn');
+  var err = document.getElementById('reg-error');
+  var suc = document.getElementById('reg-success');
+  err.classList.remove('show'); suc.classList.remove('show');
+  if (!username||!email||!password||!confirm) { err.textContent='Please fill in all fields!'; err.classList.add('show'); return; }
+  if (username.length<3) { err.textContent='Username must be at least 3 characters!'; err.classList.add('show'); return; }
+  if (password.length<6) { err.textContent='Password must be at least 6 characters!'; err.classList.add('show'); return; }
+  if (password!==confirm) { err.textContent='Passwords do not match!'; err.classList.add('show'); return; }
+  btn.textContent='Creating account...'; btn.disabled=true;
+  try {
+    await registerUser(email, password, username);
+    suc.innerHTML='Account created! Now <a href="#" onclick="showAuthSection(\'login\')">login here</a>!';
+    suc.classList.add('show'); btn.textContent='Account Created!';
+  } catch(e) {
+    err.textContent=e.message; err.classList.add('show');
+    btn.textContent='Create Account'; btn.disabled=false;
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  var active = document.querySelector('#auth-gate .page-section.active');
+  if (!active) return;
+  if (active.id === 'section-login') handleLogin();
+  else if (active.id === 'section-register') handleRegister();
+});
+
+// ════════════════════════════════════════
+// ADOPT TAB
+// ════════════════════════════════════════
+var ownedPetIds = [], totalOwnedCount = 0, selectedPet = null;
+
+async function loadAdoptPets() {
+  var grid = document.getElementById('pets-grid');
+  var user = window._currentUser; if (!user) return;
+
+  var owned = await supabaseClient.from('user_pets').select('pet_id').eq('user_id', user.id);
+  if (owned.data) { ownedPetIds = owned.data.map(function(p){return p.pet_id;}); totalOwnedCount = owned.data.length; }
+
+  var res = await supabaseClient.from('pets').select('*').order('created_at', {ascending:true});
+  if (res.error || !res.data) { grid.innerHTML='<p style="text-align:center;color:var(--text-light)">Could not load pets.</p>'; return; }
+  grid.innerHTML = res.data.map(renderPetCard).join('');
+}
+
+function renderPetCard(pet) {
+  var isPlaceholder = pet.name==='???';
+  var isOwned = ownedPetIds.indexOf(pet.id)!==-1;
+  var isFree = totalOwnedCount===0;
+  var price = isFree ? 0 : pet.price;
+  var canAfford = (window._currentPoints||0) >= price;
+  var imgHtml = (pet.image_file&&!isPlaceholder)
+    ? '<img src="images/'+pet.image_file+'" alt="'+pet.name+'" onerror="this.parentElement.innerHTML=\'&#128062;\'">'
+    : '<span class="pet-image-placeholder">'+(isPlaceholder?'&#10067;':'&#128062;')+'</span>';
+  var priceHtml = isPlaceholder?'':(price===0?'<span class="pet-price free">FREE</span>':'<span class="pet-price">&#129689; '+pet.price+' PP</span>');
+  var btn = '';
+  if (isPlaceholder) btn='<button class="btn-locked">Coming Soon</button>';
+  else if (isOwned) btn='<button class="btn-owned">Already Adopted!</button>';
+  else if (!canAfford) btn='<button class="btn-locked">Need '+pet.price+' PP</button>';
+  else btn='<button class="btn btn-primary btn-adopt" onclick="openAdoptModal(\''+pet.id+'\',\''+pet.name.replace(/'/g,"\\'")+'\',\''+((pet.description||'').replace(/'/g,"\\'")+'\',\''+(pet.image_file||'')+'\','+price+')">Adopt!</button>');
+  return '<div class="pet-card'+(isPlaceholder?' placeholder':'')+(isOwned?' already-owned':'')+'">'+
+    '<div class="pet-image-wrap">'+imgHtml+'</div>'+
+    '<div class="pet-name">'+(isPlaceholder?'???':pet.name)+'</div>'+
+    (pet.vtuber_name&&!isPlaceholder?'<div class="pet-vtuber">'+pet.vtuber_name+'</div>':'')+
+    '<div class="pet-description">'+(isPlaceholder?'A mystery pet shrouded in shadow...':(pet.description||''))+'</div>'+
+    priceHtml+btn+'</div>';
+}
+
+function openAdoptModal(petId, petName, petDesc, imageFile, price) {
+  selectedPet = {id:petId, name:petName, description:petDesc, image_file:imageFile, price:price};
+  var mi = document.getElementById('modal-image');
+  mi.innerHTML = imageFile ? '<img src="images/'+imageFile+'" alt="'+petName+'" onerror="this.parentElement.innerHTML=\'&#128062;\'">' : '&#128062;';
+  document.getElementById('modal-title').textContent = 'Adopt '+petName+'?';
+  document.getElementById('modal-desc').textContent = price===0 ? 'Your first pet is free! Give them a nickname.' : 'This will cost '+price+' PawketPoints.';
+  document.getElementById('nickname-input').value = '';
+  document.getElementById('adopt-modal').classList.add('show');
+}
+function closeAdoptModal() { document.getElementById('adopt-modal').classList.remove('show'); selectedPet=null; }
+function closeSuccessModal() { document.getElementById('success-modal').classList.remove('show'); tabsLoaded['adopt']=false; loadAdoptPets(); }
+
+async function confirmAdopt() {
+  if (!selectedPet||!window._currentUser) return;
+  var btn = document.getElementById('confirm-adopt-btn');
+  var nickname = document.getElementById('nickname-input').value.trim() || selectedPet.name;
+  btn.textContent='Adopting...'; btn.disabled=true;
+  var res = await supabaseClient.from('user_pets').insert([{
+    user_id:window._currentUser.id, pet_id:selectedPet.id, nickname:nickname,
+    level:1, xp:0, hunger:50, energy:50, happiness:50, max_hunger:100, max_energy:100, max_happiness:100
+  }]);
+  if (res.error) { showToast('Error: '+res.error.message); btn.textContent='Adopt!'; btn.disabled=false; return; }
+  if (selectedPet.price>0) {
+    var np = (window._currentPoints||0) - selectedPet.price;
+    await supabaseClient.from('players').update({pawketpoints:np}).eq('id',window._currentUser.id);
+    updateAllPointsDisplays(np);
+  }
+  closeAdoptModal();
+  document.getElementById('success-message').textContent = nickname+' has joined your collection!';
+  document.getElementById('success-modal').classList.add('show');
+  ownedPetIds.push(selectedPet.id); totalOwnedCount++;
+  tabsLoaded['mypets'] = false;
+  btn.textContent='Adopt!'; btn.disabled=false;
+}
+
+// ════════════════════════════════════════
+// MY PETS TAB
+// ════════════════════════════════════════
+var petState = {}, inventoryItems = [];
+
+async function loadMyPets() {
+  var container = document.getElementById('mypets-container');
+  var user = window._currentUser; if (!user) return;
+  await loadInventoryData();
+  var res = await supabaseClient.from('user_pets').select('*, pets(name, image_file, vtuber_name, twitch_url)').eq('user_id', user.id).order('adopted_at',{ascending:true});
+  if (res.error) { container.innerHTML='<p style="text-align:center;color:var(--text-light)">Could not load pets.</p>'; return; }
+  if (!res.data||!res.data.length) {
+    container.innerHTML='<div class="empty-state"><div style="font-size:3rem;margin-bottom:14px;">&#128062;</div><h2 style="color:var(--purple-dark);margin-bottom:10px;">No pets yet!</h2><p style="color:var(--text-light);margin-bottom:18px;">Head to the adoption centre!</p><button class="btn btn-primary btn-lg" onclick="showTab(\'adopt\')">Adopt a Pet</button></div>';
+    return;
+  }
+  res.data.forEach(function(pet) {
+    petState[pet.id] = Object.assign({}, pet, {
+      energy: calculateEnergyRegen(pet.energy, pet.max_energy, pet.last_played),
+      hunger: calculateHungerDecay(pet.hunger, pet.last_fed),
+      happiness: calculateHappinessDecay(pet.happiness, pet.last_fed, pet.last_played)
+    });
+  });
+  container.innerHTML='<div class="mypets-grid">'+Object.values(petState).map(renderMyPetCard).join('')+'</div>';
+}
+
+async function loadInventoryData() {
+  inventoryItems = [];
+  var user = window._currentUser; if (!user) return;
+  var invRes = await supabaseClient.from('user_inventory').select('id,item_id,quantity').eq('user_id',user.id).gt('quantity',0);
+  if (invRes.error||!invRes.data||!invRes.data.length) return;
+  var itemIds = invRes.data.map(function(r){return r.item_id;});
+  var itemsRes = await supabaseClient.from('items').select('id,name,hunger_effect,energy_effect,happiness_effect,xp_effect').in('id',itemIds);
+  var itemMap = {};
+  if (itemsRes.data) itemsRes.data.forEach(function(i){itemMap[i.id]=i;});
+  invRes.data.forEach(function(row) {
+    var item = itemMap[row.item_id]||{};
+    inventoryItems.push({invId:row.id,itemId:row.item_id,name:item.name||'Item',qty:row.quantity,h:item.hunger_effect||0,e:item.energy_effect||0,hap:item.happiness_effect||0,xp:item.xp_effect||0});
+  });
+}
+
+function getEffectText(item) {
+  var p=[];
+  if(item.h>0)p.push('+'+item.h+' Hunger');
+  if(item.e>0)p.push('+'+item.e+' Energy');
+  if(item.hap>0)p.push('+'+item.hap+' Happiness');
+  if(item.xp>0)p.push('+'+item.xp+' XP');
+  return p.join('  ');
+}
+
+function buildDropdown(petId) {
+  if (!inventoryItems.length) return '<div class="use-item-section"><div class="use-item-label">Use an Item</div><p style="font-size:0.8rem;color:var(--text-light)">No items. <a href="#" onclick="showTab(\'shop\')">Visit the shop!</a></p></div>';
+  var opts='<option value="">Choose an item</option>';
+  inventoryItems.forEach(function(item){opts+='<option value="'+item.invId+'">'+item.name+' (x'+item.qty+') - '+getEffectText(item)+'</option>';});
+  return '<div class="use-item-section"><div class="use-item-label">Use an Item</div>'+
+    '<div class="use-item-row"><select class="item-select" id="sel-'+petId+'" onchange="previewItem(\''+petId+'\')">'+opts+'</select>'+
+    '<button class="btn-use-item" id="usebtn-'+petId+'" onclick="useItem(\''+petId+\')" disabled>Use</button></div>'+
+    '<div class="item-effect-preview" id="preview-'+petId+'"></div></div>';
+}
+
+function previewItem(petId) {
+  var sel=document.getElementById('sel-'+petId);
+  var preview=document.getElementById('preview-'+petId);
+  var btn=document.getElementById('usebtn-'+petId);
+  if(!sel||!sel.value){if(preview)preview.textContent='';if(btn)btn.disabled=true;return;}
+  var item=inventoryItems.find(function(i){return i.invId===sel.value;});
+  if(!item){if(preview)preview.textContent='';if(btn)btn.disabled=true;return;}
+  preview.textContent='Will give: '+getEffectText(item);
+  btn.disabled=false;
+}
+
+async function useItem(petId) {
+  var sel=document.getElementById('sel-'+petId); if(!sel||!sel.value)return;
+  var idx=inventoryItems.findIndex(function(i){return i.invId===sel.value;}); if(idx===-1)return;
+  var item=inventoryItems[idx]; var pet=petState[petId]; if(!pet)return;
+  var btn=document.getElementById('usebtn-'+petId); btn.disabled=true; btn.textContent='...';
+  var updates={};
+  if(item.h>0)updates.hunger=Math.min(pet.hunger+item.h,pet.max_hunger);
+  if(item.e>0)updates.energy=Math.min(pet.energy+item.e,pet.max_energy);
+  if(item.hap>0)updates.happiness=Math.min(pet.happiness+item.hap,pet.max_happiness);
+  if(item.xp>0)updates.xp=pet.xp+item.xp;
+  if(!Object.keys(updates).length){showToast('No effects configured.');btn.disabled=false;btn.textContent='Use';return;}
+  var res=await supabaseClient.from('user_pets').update(updates).eq('id',petId);
+  if(res.error){showToast('Error: '+res.error.message);btn.disabled=false;btn.textContent='Use';return;}
+  if(item.qty<=1){await supabaseClient.from('user_inventory').delete().eq('id',item.invId);inventoryItems.splice(idx,1);}
+  else{await supabaseClient.from('user_inventory').update({quantity:item.qty-1}).eq('id',item.invId);inventoryItems[idx].qty=item.qty-1;}
+  if(updates.hunger!==undefined){petState[petId].hunger=updates.hunger;updateBar(petId,'hunger',updates.hunger,pet.max_hunger);}
+  if(updates.energy!==undefined){petState[petId].energy=updates.energy;updateBar(petId,'energy',updates.energy,pet.max_energy);}
+  if(updates.happiness!==undefined){petState[petId].happiness=updates.happiness;updateBar(petId,'happiness',updates.happiness,pet.max_happiness);}
+  if(updates.xp!==undefined){petState[petId].xp=updates.xp;updateXpBar(petId,updates.xp,pet.level);}
+  showFlash(petId,item.name+': '+getEffectText(item),'#b06aff');
+  showToast('Used '+item.name+'!');
+  var card=document.getElementById('petcard-'+petId);
+  if(card){var old=card.querySelector('.use-item-section');if(old){var d=document.createElement('div');d.innerHTML=buildDropdown(petId);old.replaceWith(d.firstElementChild);}}
+  btn.disabled=false;btn.textContent='Use';
+}
+
+function renderMyPetCard(pet) {
+  var info=pet.pets||{};
+  var xpNext=pet.level*100;
+  var hPct=Math.round(pet.hunger/pet.max_hunger*100);
+  var hapPct=Math.round(pet.happiness/pet.max_happiness*100);
+  var ePct=Math.round(pet.energy/pet.max_energy*100);
+  var xpPct=Math.min(pet.xp/xpNext*100,100);
+  var canFeed=pet.hunger<pet.max_hunger;
+  var canPlay=pet.energy>=10;
+  var imgHtml=info.image_file?'<img src="images/'+info.image_file+'" alt="'+pet.nickname+'" onerror="this.parentElement.innerHTML=\'&#128062;\'">':'&#128062;';
+  var twitchLink=info.twitch_url?'&nbsp;<a href="'+info.twitch_url+'" target="_blank" style="font-size:0.72rem;background:#9146ff;color:white;padding:2px 7px;border-radius:10px;font-family:\'Fredoka One\',cursive;text-decoration:none;">Watch Live</a>':'';
+  return '<div class="my-pet-card" id="petcard-'+pet.id+'">'+
+    '<div class="pet-card-header"><div class="pet-avatar">'+imgHtml+'</div>'+
+    '<div class="pet-card-info">'+
+    '<div class="pet-card-nickname">'+pet.nickname+'</div>'+
+    '<div class="pet-card-species">'+(info.vtuber_name?info.vtuber_name:'')+twitchLink+'</div>'+
+    '<div class="pet-card-level">Lv. '+pet.level+' | Max: '+pet.max_hunger+'</div>'+
+    '</div></div>'+
+    (pet.happiness<=20||pet.hunger<=10?'<div class="sadness-warning">Your pet needs attention!</div>':'')+
+    '<div class="stat-bars">'+
+    sRow('hunger',pet.id,pet.hunger,pet.max_hunger,hPct,'Hunger')+
+    sRow('happiness',pet.id,pet.happiness,pet.max_happiness,hapPct,'Happiness')+
+    sRow('energy',pet.id,pet.energy,pet.max_energy,ePct,'Energy')+
+    '<div class="xp-row"><span class="xp-label">XP</span><div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-bar-'+pet.id+'" style="width:'+xpPct+'%"></div></div><span class="xp-value" id="xp-val-'+pet.id+'">'+pet.xp+'/'+xpNext+'</span></div>'+
+    '</div>'+
+    '<div class="pet-actions">'+
+    '<button class="btn-action btn-feed" id="feed-'+pet.id+'" onclick="feed(\''+pet.id+'\')"'+(canFeed?'':' disabled')+'>'+(canFeed?'Feed':'Full!')+'</button>'+
+    '<button class="btn-action btn-play" id="play-'+pet.id+'" onclick="play(\''+pet.id+'\')"'+(canPlay?'':' disabled')+'>'+(canPlay?'Play':'Tired!')+'</button>'+
+    '</div>'+
+    buildDropdown(pet.id)+
+    '<div class="stat-flash" id="flash-'+pet.id+'"></div></div>';
+}
+
+function sRow(stat,petId,val,max,pct,label) {
+  return '<div class="stat-row"><span class="stat-label">'+label+'</span><div class="stat-bar-wrap"><div class="stat-bar-fill '+stat+'" id="'+stat+'-bar-'+petId+'" style="width:'+pct+'%"></div></div><span class="stat-value" id="'+stat+'-val-'+petId+'">'+val+'/'+max+'</span></div>';
+}
+
+async function feed(petId) {
+  var pet=petState[petId]; if(!pet||pet.hunger>=pet.max_hunger)return;
+  var btn=document.getElementById('feed-'+petId); btn.disabled=true; btn.textContent='...';
+  var nh=Math.min(pet.hunger+20,pet.max_hunger);
+  var nhap=Math.min(pet.happiness+5,pet.max_happiness);
+  var lu=calculateLevelUp(pet.xp+10,pet.level,pet.max_hunger,pet.max_energy,pet.max_happiness);
+  var upd={hunger:nh,happiness:nhap,xp:lu.xp,level:lu.level,last_fed:new Date().toISOString()};
+  if(lu.leveled){upd.max_hunger=lu.maxHunger;upd.max_energy=lu.maxEnergy;upd.max_happiness=lu.maxHappiness;}
+  var res=await supabaseClient.from('user_pets').update(upd).eq('id',petId);
+  if(res.error){showFlash(petId,'Error!','#ff6eb4');btn.disabled=false;btn.textContent='Feed';return;}
+  Object.assign(petState[petId],upd);
+  updateBar(petId,'hunger',nh,lu.maxHunger); updateBar(petId,'happiness',nhap,lu.maxHappiness); updateXpBar(petId,lu.xp,lu.level);
+  if(lu.leveled){showFlash(petId,'Level '+lu.level+'! Max stats +5!','#b06aff');updateLvlDisplay(petId,lu.level,lu.maxHunger);}
+  else showFlash(petId,'+20 Hunger +5 Happiness +10 XP','#5dde7a');
+  if(nh>=lu.maxHunger){btn.textContent='Full!';}else{btn.disabled=false;btn.textContent='Feed';}
+}
+
+async function play(petId) {
+  var pet=petState[petId]; if(!pet||pet.energy<10)return;
+  var btn=document.getElementById('play-'+petId); btn.disabled=true; btn.textContent='...';
+  var ne=Math.max(pet.energy-10,0);
+  var nhap=Math.min(pet.happiness+15,pet.max_happiness);
+  var lu=calculateLevelUp(pet.xp+15,pet.level,pet.max_hunger,pet.max_energy,pet.max_happiness);
+  var upd={energy:ne,happiness:nhap,xp:lu.xp,level:lu.level,last_played:new Date().toISOString()};
+  if(lu.leveled){upd.max_hunger=lu.maxHunger;upd.max_energy=lu.maxEnergy;upd.max_happiness=lu.maxHappiness;}
+  var res=await supabaseClient.from('user_pets').update(upd).eq('id',petId);
+  if(res.error){showFlash(petId,'Error!','#ff6eb4');btn.disabled=false;btn.textContent='Play';return;}
+  Object.assign(petState[petId],upd);
+  updateBar(petId,'energy',ne,lu.maxEnergy); updateBar(petId,'happiness',nhap,lu.maxHappiness); updateXpBar(petId,lu.xp,lu.level);
+  if(lu.leveled){showFlash(petId,'Level '+lu.level+'! Max stats +5!','#b06aff');updateLvlDisplay(petId,lu.level,lu.maxHunger);}
+  else showFlash(petId,'-10 Energy +15 Happiness +15 XP','#5dde7a');
+  if(ne<10){btn.textContent='Tired!';}else{btn.disabled=false;btn.textContent='Play';}
+}
+
+function updateBar(petId,stat,val,max) {
+  var pct=Math.round(val/max*100);
+  var b=document.getElementById(stat+'-bar-'+petId); if(b)b.style.width=pct+'%';
+  var v=document.getElementById(stat+'-val-'+petId); if(v)v.textContent=val+'/'+max;
+}
+function updateXpBar(petId,xp,level) {
+  var next=level*100; var pct=Math.min(xp/next*100,100);
+  var b=document.getElementById('xp-bar-'+petId); if(b)b.style.width=pct+'%';
+  var v=document.getElementById('xp-val-'+petId); if(v)v.textContent=xp+'/'+next;
+}
+function updateLvlDisplay(petId,level,maxH) {
+  var card=document.getElementById('petcard-'+petId); if(!card)return;
+  var el=card.querySelector('.pet-card-level'); if(el)el.textContent='Lv. '+level+' | Max: '+maxH;
+}
+function showFlash(petId,msg,color) {
+  var el=document.getElementById('flash-'+petId); if(!el)return;
+  el.textContent=msg; el.style.color=color||'var(--green)'; el.style.opacity='1';
+  setTimeout(function(){el.style.opacity='0';},2800);
+}
+
+// ════════════════════════════════════════
+// SHOP TAB
+// ════════════════════════════════════════
+var selectedInvItem = null;
+
+function showShopTab(tab) {
+  document.getElementById('shop-items-panel').style.display = tab==='items'?'block':'none';
+  document.getElementById('shop-inv-panel').style.display = tab==='inventory'?'block':'none';
+  document.getElementById('shop-tab-btn').classList.toggle('active', tab==='items');
+  document.getElementById('inv-tab-btn').classList.toggle('active', tab==='inventory');
+}
+
+function itemEmoji(type) { return {food:'&#127830;',toy:'&#127934;',potion:'&#10024;',special:'&#127775;'}[type]||'&#127873;'; }
+
+function effectTags(item) {
+  var tags=[];
+  if(item.hunger_effect>0)tags.push('<span class="effect-tag">+'+item.hunger_effect+' Hunger</span>');
+  if(item.energy_effect>0)tags.push('<span class="effect-tag">+'+item.energy_effect+' Energy</span>');
+  if(item.happiness_effect>0)tags.push('<span class="effect-tag">+'+item.happiness_effect+' Happiness</span>');
+  if(item.xp_effect>0)tags.push('<span class="effect-tag">+'+item.xp_effect+' XP</span>');
+  return tags.length?'<div class="shop-effects">'+tags.join('')+'</div>':'';
+}
+
+async function loadShop() {
+  var grid=document.getElementById('shop-grid');
+  var res=await supabaseClient.from('items').select('*').order('price',{ascending:true});
+  if(res.error||!res.data||!res.data.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:36px;color:var(--text-light)">No items yet!</div>';return;}
+  var seen={},deduped=[];
+  res.data.forEach(function(item){var k=item.name.toLowerCase().trim();if(!seen[k]||item.price<seen[k].price)seen[k]=item;});
+  Object.values(seen).sort(function(a,b){return a.price-b.price;}).forEach(function(i){deduped.push(i);});
+  var pts=window._currentPoints||0;
+  grid.innerHTML=deduped.map(function(item){
+    var em=itemEmoji(item.item_type);
+    var canAfford=pts>=item.price;
+    var imgHtml=item.image_url?'<img src="'+item.image_url+'" alt="'+item.name+'" onerror="this.parentElement.innerHTML=\''+em+'\'">':em;
+    return '<div class="shop-card">'+
+      '<div class="shop-item-icon">'+imgHtml+'</div>'+
+      '<div class="shop-item-name">'+item.name+'</div>'+
+      '<div class="shop-item-desc">'+(item.description||'')+'</div>'+
+      effectTags(item)+
+      '<div class="shop-item-price">&#129689; '+item.price+' PP</div>'+
+      '<button class="btn-buy" onclick="buyItem(\''+item.id+'\',\''+item.name.replace(/'/g,"\\'")+'\','+item.price+')"'+(canAfford?'':' disabled')+'>'+(canAfford?'Buy':'Need '+item.price+' PP')+'</button>'+
+      '</div>';
+  }).join('');
+}
+
+async function buyItem(itemId,itemName,price) {
+  var pts=window._currentPoints||0; if(pts<price)return;
+  var user=window._currentUser; if(!user)return;
+  var np=pts-price;
+  var res1=await supabaseClient.from('players').update({pawketpoints:np}).eq('id',user.id);
+  if(res1.error){showToast('Error deducting points.');return;}
+  var existing=await supabaseClient.from('user_inventory').select('id,quantity').eq('user_id',user.id).eq('item_id',itemId).limit(1);
+  if(existing.data&&existing.data.length>0){
+    await supabaseClient.from('user_inventory').update({quantity:existing.data[0].quantity+1}).eq('id',existing.data[0].id);
+  } else {
+    var ins=await supabaseClient.from('user_inventory').insert([{user_id:user.id,item_id:itemId,quantity:1}]);
+    if(ins.error){showToast('Bought but inventory failed: '+ins.error.message);return;}
+  }
+  updateAllPointsDisplays(np);
+  showToast('Bought '+itemName+'!');
+  tabsLoaded['shop']=false; loadShop(); loadInventory();
+  tabsLoaded['mypets']=false;
+}
+
+async function loadInventory() {
+  var grid=document.getElementById('inventory-grid');
+  var user=window._currentUser; if(!user)return;
+  var invRes=await supabaseClient.from('user_inventory').select('id,item_id,quantity').eq('user_id',user.id).gt('quantity',0);
+  if(invRes.error||!invRes.data||!invRes.data.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:36px;color:var(--text-light)">Inventory empty! Buy items from the shop.</div>';return;}
+  var itemIds=invRes.data.map(function(r){return r.item_id;});
+  var itemsRes=await supabaseClient.from('items').select('id,name,item_type,image_url').in('id',itemIds);
+  var itemMap={};
+  if(itemsRes.data)itemsRes.data.forEach(function(i){itemMap[i.id]=i;});
+  grid.innerHTML=invRes.data.map(function(row){
+    var item=itemMap[row.item_id]||{};
+    var em=itemEmoji(item.item_type);
+    var imgHtml=item.image_url?'<img src="'+item.image_url+'" alt="'+(item.name||'')+'" onerror="this.parentElement.innerHTML=\''+em+'\'" style="width:100%;height:100%;object-fit:cover;">':em;
+    return '<div class="inv-card"><div class="inv-icon">'+imgHtml+'</div><div class="inv-name">'+(item.name||'Item')+'</div><div class="inv-qty">x'+row.quantity+'</div>'+
+      '<button class="btn btn-sm btn-primary" onclick="openUseModal(\''+row.id+'\',\''+((item.name||'').replace(/'/g,"\\'")+'\')">Use</button></div>');
+  }).join('');
+}
+
+function openUseModal(invId,itemName) {
+  selectedInvItem={invId:invId,itemName:itemName};
+  document.getElementById('use-modal-title').textContent='Use '+itemName;
+  document.getElementById('use-modal-desc').textContent='Which pet?';
+  var list=document.getElementById('pet-select-list');
+  var pets=Object.values(petState);
+  if(!pets.length){list.innerHTML='<p style="color:var(--text-light)">No pets! <a href="#" onclick="showTab(\'adopt\')">Adopt one</a>.</p>';}
+  else{list.innerHTML=pets.map(function(p){return '<button class="pet-select-btn" onclick="useOnPet(\''+p.id+'\',\''+p.nickname.replace(/'/g,"\\'")+'\')">'+p.nickname+'</button>';}).join('');}
+  document.getElementById('use-modal').classList.add('show');
+}
+function closeUseModal(){document.getElementById('use-modal').classList.remove('show');selectedInvItem=null;}
+
+async function useOnPet(petId,petNickname) {
+  if(!selectedInvItem)return;
+  var invId=selectedInvItem.invId; var itemName=selectedInvItem.itemName;
+  closeUseModal();
+  var invRow=await supabaseClient.from('user_inventory').select('item_id,quantity').eq('id',invId).single();
+  if(invRow.error||!invRow.data){showToast('Could not find item.');return;}
+  var itemRes=await supabaseClient.from('items').select('hunger_effect,energy_effect,happiness_effect,xp_effect').eq('id',invRow.data.item_id).single();
+  if(itemRes.error||!itemRes.data){showToast('Could not find effects.');return;}
+  var ef=itemRes.data;
+  var petRes=await supabaseClient.from('user_pets').select('hunger,max_hunger,energy,max_energy,happiness,max_happiness,xp,level').eq('id',petId).single();
+  if(petRes.error||!petRes.data){showToast('Could not find pet.');return;}
+  var pet=petRes.data; var updates={};
+  if(ef.hunger_effect>0)updates.hunger=Math.min(pet.hunger+ef.hunger_effect,pet.max_hunger);
+  if(ef.energy_effect>0)updates.energy=Math.min(pet.energy+ef.energy_effect,pet.max_energy);
+  if(ef.happiness_effect>0)updates.happiness=Math.min(pet.happiness+ef.happiness_effect,pet.max_happiness);
+  if(ef.xp_effect>0)updates.xp=pet.xp+ef.xp_effect;
+  if(!Object.keys(updates).length){showToast('No effects configured.');return;}
+  await supabaseClient.from('user_pets').update(updates).eq('id',petId);
+  var qty=invRow.data.quantity;
+  if(qty<=1){await supabaseClient.from('user_inventory').delete().eq('id',invId);}
+  else{await supabaseClient.from('user_inventory').update({quantity:qty-1}).eq('id',invId);}
+  showToast('Used '+itemName+' on '+petNickname+'!');
+  await loadInventory();
+  tabsLoaded['mypets']=false;
+}
+
+// ════════════════════════════════════════
+// MINIGAMES TAB
+// ════════════════════════════════════════
+var today=new Date().toISOString().split('T')[0];
+var secretNumber=0, guessesLeft=3, memoryCards=[], flippedCards=[], matchedPairs=0, triesLeft=15, memoryEarned=0, memoryLocked=false;
+var memoryEmojis=['&#128062;','&#127775;','&#128150;','&#9889;','&#127830;','&#127934;'];
+
+function gck(game){return 'game_'+game+'_'+(window._currentUser?window._currentUser.id:'')+'_'+today;}
+function isCD(game){return localStorage.getItem(gck(game))==='done';}
+function setCD(game){localStorage.setItem(gck(game),'done');}
+
+function initMinigames() {
+  if(isCD('dice')){document.getElementById('roll-btn').style.display='none';document.getElementById('dice-cooldown').style.display='block';document.getElementById('dice-cooldown').textContent='Already played today! Come back tomorrow.';}
+  if(isCD('guess')){document.getElementById('guess-play').style.display='none';document.getElementById('guess-cooldown').style.display='block';document.getElementById('guess-cooldown').textContent='Already played today! Come back tomorrow.';}
+  else initGuess();
+  if(isCD('memory')){document.getElementById('memory-play').style.display='none';document.getElementById('memory-cooldown').style.display='block';document.getElementById('memory-cooldown').textContent='Already played today! Come back tomorrow.';}
+  else initMemory();
+}
+
+async function awardPP(amount) {
+  var user=window._currentUser; if(!user)return;
+  var np=(window._currentPoints||0)+amount;
+  await supabaseClient.from('players').update({pawketpoints:np}).eq('id',user.id);
+  updateAllPointsDisplays(np);
+}
+
+var diceFaces=['&#9856;','&#9857;','&#9858;','&#9859;','&#9860;','&#9861;'];
+async function rollDice() {
+  if(isCD('dice'))return;
+  var btn=document.getElementById('roll-btn'); btn.disabled=true;
+  var d1=document.getElementById('die1'); var d2=document.getElementById('die2');
+  var res=document.getElementById('dice-result'); res.textContent=''; res.style.opacity='0';
+  d1.classList.add('rolling'); d2.classList.add('rolling');
+  var ri=setInterval(function(){d1.innerHTML=diceFaces[Math.floor(Math.random()*6)];d2.innerHTML=diceFaces[Math.floor(Math.random()*6)];},100);
+  setTimeout(async function(){
+    clearInterval(ri); d1.classList.remove('rolling'); d2.classList.remove('rolling');
+    var v1=Math.floor(Math.random()*6)+1; var v2=Math.floor(Math.random()*6)+1;
+    d1.innerHTML=diceFaces[v1-1]; d2.innerHTML=diceFaces[v2-1];
+    var total=v1+v2; var isDouble=v1===v2; var earned=isDouble?total*3:total;
+    await awardPP(earned); setCD('dice');
+    res.style.opacity='1';
+    res.textContent=isDouble?'DOUBLE '+v1+'s! Triple points! +'+earned+' PP!':'Rolled '+v1+'+'+v2+'='+total+'! +'+earned+' PP!';
+    res.style.color=isDouble?'#b06aff':'#5dde7a';
+    btn.style.display='none'; document.getElementById('dice-cooldown').style.display='block';
+    document.getElementById('dice-cooldown').textContent='Come back tomorrow for another roll!';
+  },1200);
+}
+
+function initGuess(){secretNumber=Math.floor(Math.random()*10)+1;guessesLeft=3;document.getElementById('guess-input').value='';document.getElementById('guess-result').textContent='';document.getElementById('attempts-left').textContent='3 guesses remaining';}
+async function makeGuess() {
+  if(isCD('guess'))return;
+  var input=document.getElementById('guess-input'); var guess=parseInt(input.value);
+  var result=document.getElementById('guess-result'); var attEl=document.getElementById('attempts-left');
+  if(!guess||guess<1||guess>10){result.textContent='Enter a number 1-10!';result.style.color='#ff6eb4';return;}
+  guessesLeft--;
+  if(guess===secretNumber){
+    await awardPP(25); setCD('guess');
+    result.textContent='Correct! +25 PP!'; result.style.color='#5dde7a';
+    document.getElementById('guess-play').style.display='none';
+    document.getElementById('guess-cooldown').style.display='block';
+    document.getElementById('guess-cooldown').textContent='Come back tomorrow to play again!';
+  } else if(guessesLeft===0){
+    setCD('guess');
+    result.textContent='The number was '+secretNumber+'. Better luck tomorrow!'; result.style.color='#ff6eb4';
+    document.getElementById('guess-play').style.display='none';
+    document.getElementById('guess-cooldown').style.display='block';
+    document.getElementById('guess-cooldown').textContent='Come back tomorrow to try again!';
+  } else {
+    var hint=guess<secretNumber?'Too low!':'Too high!';
+    result.textContent=hint+' '+guessesLeft+' guess'+(guessesLeft===1?'':'es')+' left.'; result.style.color='#ff9f43';
+    attEl.textContent=guessesLeft+' guess'+(guessesLeft===1?'':'es')+' remaining';
+    input.value=''; input.focus();
+  }
+}
+
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function initMemory() {
+  if(isCD('memory'))return;
+  var pairs=memoryEmojis.concat(memoryEmojis); memoryCards=shuffle(pairs);
+  flippedCards=[]; matchedPairs=0; triesLeft=15; memoryEarned=0; memoryLocked=false;
+  document.getElementById('match-count').textContent='0';
+  document.getElementById('tries-left').textContent='15';
+  document.getElementById('memory-earned').textContent='0';
+  document.getElementById('memory-result').textContent='';
+  var grid=document.getElementById('memory-grid'); grid.innerHTML='';
+  memoryCards.forEach(function(em,idx){
+    var btn=document.createElement('button'); btn.className='memory-card';
+    btn.dataset.idx=idx; btn.dataset.emoji=em; btn.innerHTML='';
+    btn.onclick=function(){flipCard(this);}; grid.appendChild(btn);
+  });
+}
+
+function flipCard(btn) {
+  if(memoryLocked)return;
+  if(btn.classList.contains('flipped')||btn.classList.contains('matched'))return;
+  if(flippedCards.length>=2)return;
+  btn.innerHTML=btn.dataset.emoji; btn.classList.add('flipped'); flippedCards.push(btn);
+  if(flippedCards.length===2){
+    memoryLocked=true; triesLeft--; document.getElementById('tries-left').textContent=triesLeft;
+    if(flippedCards[0].dataset.emoji===flippedCards[1].dataset.emoji){
+      flippedCards[0].classList.add('matched'); flippedCards[1].classList.add('matched');
+      flippedCards[0].classList.remove('flipped'); flippedCards[1].classList.remove('flipped');
+      matchedPairs++; memoryEarned+=5;
+      document.getElementById('match-count').textContent=matchedPairs;
+      document.getElementById('memory-earned').textContent=memoryEarned;
+      flippedCards=[]; memoryLocked=false;
+      if(matchedPairs===6){
+        awardPP(memoryEarned); setCD('memory');
+        var r=document.getElementById('memory-result'); r.textContent='All matched! +'+memoryEarned+' PP!'; r.style.color='#5dde7a';
+        document.getElementById('memory-cooldown').style.display='block';
+        document.getElementById('memory-cooldown').textContent='Come back tomorrow!';
       }
-    })();
-  </script>
+    } else {
+      setTimeout(function(){
+        flippedCards[0].innerHTML=''; flippedCards[0].classList.remove('flipped');
+        flippedCards[1].innerHTML=''; flippedCards[1].classList.remove('flipped');
+        flippedCards=[]; memoryLocked=false;
+        if(triesLeft===0&&matchedPairs<6){
+          awardPP(memoryEarned); setCD('memory');
+          var r=document.getElementById('memory-result'); r.textContent='Out of tries! Matched '+matchedPairs+'/6, earned '+memoryEarned+' PP.'; r.style.color='#ff9f43';
+          document.getElementById('memory-cooldown').style.display='block';
+          document.getElementById('memory-cooldown').textContent='Come back tomorrow!';
+          document.querySelectorAll('.memory-card:not(.matched)').forEach(function(c){c.innerHTML=c.dataset.emoji;c.disabled=true;});
+        }
+      },900);
+    }
+  }
+}
+
+// ════════════════════════════════════════
+// NEWS TAB
+// ════════════════════════════════════════
+async function loadNews() {
+  var container=document.getElementById('news-container');
+  var res=await supabaseClient.from('news').select('*').eq('is_published',true).order('published_at',{ascending:false});
+  if(res.error||!res.data||!res.data.length){
+    container.innerHTML='<div class="card" style="text-align:center;padding:56px 36px;"><div style="font-size:2.8rem;margin-bottom:14px;">&#128235;</div><h2 style="color:var(--purple-dark);margin-bottom:10px;">No news yet!</h2><p style="color:var(--text-light)">Check back soon!</p></div>';
+    return;
+  }
+  container.innerHTML=res.data.map(function(post){
+    var date=new Date(post.published_at||post.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    return '<div class="news-post"><div class="news-post-date">'+date+'</div><h3>'+(post.title||'Untitled')+'</h3><p>'+(post.content||'')+'</p>'+(post.author?'<div class="news-author">- '+post.author+'</div>':'')+' </div>';
+  }).join('');
+}
+
+// ════════════════════════════════════════
+// TWITCH TAB
+// ════════════════════════════════════════
+var TWITCH_CLIENT_ID = 'moqd3war5e7fleif8yte1d8n6kl25u';
+var TWITCH_REDIRECT_URI = 'https://pawketpetsvt.github.io/';
+var STREAMER_IDS = { embertail:'EMBERTAIL_TWITCH_USER_ID', pyxshuul:'PYXSHUUL_TWITCH_USER_ID' };
+
+async function initTwitchTab() {
+  var hash=window.location.hash;
+  if(hash&&hash.includes('access_token')){
+    var params={};
+    hash.substring(1).split('&').forEach(function(part){var pair=part.split('=');params[pair[0]]=decodeURIComponent(pair[1]||'');});
+    var token=params['access_token'];
+    if(token){
+      document.getElementById('token-display').value=token;
+      document.getElementById('token-box').style.display='block';
+      await handleTwitchCallback(token);
+    }
+    window.history.replaceState({},'',window.location.pathname);
+  }
+  await checkTwitchLinked();
+}
+
+function copyToken(){var ta=document.getElementById('token-display');ta.select();document.execCommand('copy');showToast('Token copied!');}
+
+function linkTwitch(){
+  var scopes='user:read:follows';
+  var url='https://id.twitch.tv/oauth2/authorize?client_id='+TWITCH_CLIENT_ID+'&redirect_uri='+encodeURIComponent(TWITCH_REDIRECT_URI)+'&response_type=token&scope='+encodeURIComponent(scopes);
+  window.location.href=url;
+}
+
+async function handleTwitchCallback(token) {
+  var resp=await fetch('https://api.twitch.tv/helix/users',{headers:{'Client-Id':TWITCH_CLIENT_ID,'Authorization':'Bearer '+token}});
+  var data=await resp.json();
+  if(!data.data||!data.data[0]){showToast('Could not get Twitch info.');return;}
+  var tu=data.data[0];
+  var user=window._currentUser; if(!user)return;
+  await supabaseClient.from('players').update({twitch_id:tu.id,twitch_username:tu.login,twitch_token:token}).eq('id',user.id);
+  showToast('Twitch linked as '+tu.display_name+'!');
+}
+
+async function checkTwitchLinked() {
+  var user=window._currentUser; if(!user)return;
+  var res=await supabaseClient.from('players').select('twitch_username,twitch_id,twitch_token,twitch_follow_rewards').eq('id',user.id).single();
+  if(res.data&&res.data.twitch_username){
+    document.getElementById('twitch-not-linked').style.display='none';
+    document.getElementById('twitch-linked').style.display='block';
+    document.getElementById('twitch-username').textContent=res.data.twitch_username;
+    var rewards=res.data.twitch_follow_rewards||{};
+    if(rewards.embertail){var b=document.getElementById('follow-ember-badge');b.textContent='Claimed';b.className='status-badge status-done';b.style.display='inline-block';}
+    if(rewards.pyxshuul){var b2=document.getElementById('follow-pyxs-badge');b2.textContent='Claimed';b2.className='status-badge status-done';b2.style.display='inline-block';}
+  }
+}
+
+async function checkFollows() {
+  var btn=document.getElementById('check-follows-btn'); btn.disabled=true; btn.textContent='Checking...';
+  var user=window._currentUser; if(!user)return;
+  var pr=await supabaseClient.from('players').select('twitch_id,twitch_token,pawketpoints,twitch_follow_rewards').eq('id',user.id).single();
+  if(!pr.data||!pr.data.twitch_token){showToast('Twitch not linked!');btn.disabled=false;btn.textContent='Check Follows';return;}
+  var twitchId=pr.data.twitch_id; var token=pr.data.twitch_token;
+  var rewards=pr.data.twitch_follow_rewards||{}; var earned=0;
+  for(var key in STREAMER_IDS){
+    if(rewards[key])continue;
+    var sid=STREAMER_IDS[key];
+    if(sid.includes('TWITCH_USER_ID'))continue;
+    try{
+      var fr=await fetch('https://api.twitch.tv/helix/channels/followed?user_id='+twitchId+'&broadcaster_id='+sid,{headers:{'Client-Id':TWITCH_CLIENT_ID,'Authorization':'Bearer '+token}});
+      var fd=await fr.json();
+      if(fd.data&&fd.data.length>0){
+        rewards[key]=true; earned+=50;
+        var b=document.getElementById('follow-'+key+'-badge');
+        if(b){b.textContent='Claimed';b.className='status-badge status-done';b.style.display='inline-block';}
+      } else {
+        var b2=document.getElementById('follow-'+key+'-badge');
+        if(b2){b2.textContent='Not following';b2.className='status-badge status-pending';b2.style.display='inline-block';}
+      }
+    }catch(e){console.warn('Follow check error',key,e);}
+  }
+  var np=(pr.data.pawketpoints||0)+earned;
+  await supabaseClient.from('players').update({pawketpoints:np,twitch_follow_rewards:rewards}).eq('id',user.id);
+  if(earned>0){updateAllPointsDisplays(np);showToast('You earned '+earned+' PP for following!');}
+  else showToast('No new rewards. Follow our streamers on Twitch!');
+  btn.disabled=false; btn.textContent='Check Follows and Claim Rewards';
+}
+
+async function unlinkTwitch(){
+  var user=window._currentUser; if(!user)return;
+  await supabaseClient.from('players').update({twitch_id:null,twitch_username:null,twitch_token:null}).eq('id',user.id);
+  document.getElementById('twitch-not-linked').style.display='block';
+  document.getElementById('twitch-linked').style.display='none';
+  showToast('Twitch unlinked.');
+}
+
+// ════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════
+initApp();
+</script>
 </body>
 </html>
